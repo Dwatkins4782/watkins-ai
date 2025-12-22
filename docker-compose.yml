@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: watkins-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: watkins_ai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - watkins-network
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: watkins-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - watkins-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: watkins-backend
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/watkins_ai
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+    ports:
+      - "4000:4000"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - watkins-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: watkins-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - watkins-network
+    restart: unless-stopped
+
+networks:
+  watkins-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
