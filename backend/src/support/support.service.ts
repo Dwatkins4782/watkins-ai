@@ -56,7 +56,7 @@ export class SupportService {
           aiHandled: true,
           aiConfidence: analysis.confidence,
           sentiment: analysis.sentiment,
-          priority: analysis.priority,
+          priority: analysis.priority as any,
         },
       });
     }

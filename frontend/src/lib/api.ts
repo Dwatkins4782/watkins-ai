@@ -8,9 +8,11 @@ export const api = axios.create({
 
 // Request interceptor to add auth token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
   }
   return config
 })
@@ -20,8 +22,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      window.location.href = '/auth/login'
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token')
+        window.location.href = '/auth/login'
+      }
     }
     return Promise.reject(error)
   }
@@ -87,4 +91,51 @@ export const dfyApi = {
 export const billingApi = {
   createCheckout: (plan: string) => api.post('/billing/checkout', { plan }),
   getSubscription: () => api.get('/billing/subscription'),
+}
+
+// Simplified API exports
+export default {
+  // Auth
+  register: (data: any) => authApi.register(data).then(res => res.data),
+  login: (data: any) => authApi.login(data).then(res => res.data),
+  me: () => authApi.me().then(res => res.data),
+
+  // Stores
+  getStores: () => storeApi.list().then(res => res.data),
+  createStore: (data: any) => storeApi.create(data).then(res => res.data),
+  getStore: (id: string) => storeApi.get(id).then(res => res.data),
+  getStoreAnalytics: (id: string) => storeApi.getAnalytics(id).then(res => res.data),
+  syncStore: (id: string) => storeApi.sync(id).then(res => res.data),
+
+  // Crawler
+  crawlWebsite: (storeId: string) => crawlerApi.startCrawl(storeId).then(res => res.data),
+  getCrawlReports: (storeId: string) => crawlerApi.getReports(storeId).then(res => res.data),
+
+  // Email
+  createEmailFlow: (storeId: string, data: any) => emailApi.createFlow(storeId, data).then(res => res.data),
+  getEmailFlows: (storeId: string) => emailApi.getFlows(storeId).then(res => res.data),
+  activateEmailFlow: (flowId: string) => emailApi.activateFlow(flowId).then(res => res.data),
+
+  // Analytics
+  getDashboard: (storeId: string) => analyticsApi.getDashboard(storeId).then(res => res.data),
+  getInsights: (storeId: string) => analyticsApi.getInsights(storeId).then(res => res.data),
+  generateInsights: (storeId: string) => analyticsApi.generateInsights(storeId).then(res => res.data),
+
+  // Recommendations
+  generateRecommendations: (storeId: string) => recommendationsApi.generate(storeId).then(res => res.data),
+  getRecommendations: (storeId: string) => recommendationsApi.getAll(storeId).then(res => res.data),
+
+  // Support
+  createSupportTicket: (storeId: string, data: any) => supportApi.createTicket(storeId, data).then(res => res.data),
+  getSupportTickets: (storeId: string) => supportApi.getTickets(storeId).then(res => res.data),
+  getSupportTicket: (ticketId: string) => supportApi.getTicket(ticketId).then(res => res.data),
+
+  // DFY
+  createDFYProject: (data: any) => dfyApi.createProject(data).then(res => res.data),
+  getDFYProjects: () => dfyApi.getProjects().then(res => res.data),
+  getDFYProject: (projectId: string) => dfyApi.getProject(projectId).then(res => res.data),
+
+  // Billing
+  createCheckout: (plan: string) => billingApi.createCheckout(plan).then(res => res.data),
+  getSubscription: () => billingApi.getSubscription().then(res => res.data),
 }

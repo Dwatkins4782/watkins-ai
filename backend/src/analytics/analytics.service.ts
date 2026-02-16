@@ -10,6 +10,12 @@ export class AnalyticsService {
   ) {}
 
   async calculateProfitScore(storeId: string): Promise<number> {
+    // Verify store exists
+    const store = await this.prisma.store.findUnique({ where: { id: storeId } });
+    if (!store) {
+      throw new Error('Store not found');
+    }
+
     const [orderStats, productCount, customerCount] = await Promise.all([
       this.prisma.order.aggregate({
         where: { storeId, placedAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
@@ -21,8 +27,8 @@ export class AnalyticsService {
       this.prisma.customer.count({ where: { storeId } }),
     ]);
 
-    const revenue = orderStats._sum.total || 0;
-    const avgOrderValue = orderStats._avg.total || 0;
+    const revenue = Number(orderStats._sum.total) || 0;
+    const avgOrderValue = Number(orderStats._avg.total) || 0;
     const orderCount = orderStats._count || 0;
 
     // Simplified profit score calculation
@@ -82,6 +88,12 @@ export class AnalyticsService {
   }
 
   async getDashboard(storeId: string) {
+    // Verify store exists
+    const store = await this.prisma.store.findUnique({ where: { id: storeId } });
+    if (!store) {
+      throw new Error('Store not found');
+    }
+
     const profitScore = await this.calculateProfitScore(storeId);
     const insights = await this.getInsights(storeId);
 

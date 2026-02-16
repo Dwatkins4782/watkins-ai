@@ -10,7 +10,13 @@ export class BillingController {
   @Post('checkout')
   @UseGuards(JwtAuthGuard)
   async createCheckoutSession(@CurrentUser() user: any, @Body() body: { plan: string }) {
-    return this.billingService.createCheckoutSession(user.tenantId, body.plan);
+    try {
+      console.log('Checkout request - User:', user?.id, 'Tenant:', user?.tenantId, 'Plan:', body.plan);
+      return await this.billingService.createCheckoutSession(user.tenantId, body.plan);
+    } catch (error) {
+      console.error('Checkout error:', error.message, error.stack);
+      throw error;
+    }
   }
 
   @Get('subscription')

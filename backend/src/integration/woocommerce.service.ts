@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import WooCommerceRestApi from 'woocommerce-rest-api';
+import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
 
 @Injectable()
 export class WooCommerceService {
