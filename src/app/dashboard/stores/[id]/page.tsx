@@ -1,6 +1,9 @@
+'use client';
+
+import { useParams } from 'next/navigation';
 import StoreDetailsClient from './store-details-client';
 
-export default async function StoreDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  return <StoreDetailsClient id={id} />;
+export default function StoreDetailsPage() {
+  const params = useParams();
+  return <StoreDetailsClient id={params.id as string} />;
 }
