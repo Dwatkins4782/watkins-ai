@@ -58,7 +58,7 @@ export default function RecommendationsPage() {
     
     setLoading(true);
     try {
-      const data = await api.get(`/recommendations/stores/${selectedStoreId}`);
+      const data = await api.getRecommendations(selectedStoreId);
       setRecommendations(data);
     } catch (error) {
       console.error('Failed to load recommendations:', error);
@@ -73,7 +73,7 @@ export default function RecommendationsPage() {
     
     setGenerating(true);
     try {
-      await api.post(`/recommendations/stores/${selectedStoreId}/generate`);
+      await api.generateRecommendations(selectedStoreId);
       toast.success('Recommendations generated successfully');
       loadRecommendations();
     } catch (error) {

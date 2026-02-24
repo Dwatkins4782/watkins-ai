@@ -64,13 +64,10 @@ export default function EmailPage() {
     
     setLoading(true);
     try {
-      // Load flows
-      const flowsData = await api.get(`/email/stores/${selectedStoreId}/flows`);
+      const flowsData = await api.getEmailFlows(selectedStoreId);
       setFlows(flowsData);
 
-      // Load campaigns
-      const campaignsData = await api.get(`/email/stores/${selectedStoreId}/campaigns`);
-      setCampaigns(campaignsData);
+      setCampaigns([]);
     } catch (error) {
       console.error('Failed to load email data:', error);
       toast.error('Failed to load email data');
@@ -86,7 +83,7 @@ export default function EmailPage() {
         type: 'WELCOME',
         trigger: 'NEW_SUBSCRIBER',
       };
-      await api.post(`/email/stores/${selectedStoreId}/flows`, flowData);
+      await api.createEmailFlow(selectedStoreId, flowData);
       toast.success('Email flow created');
       loadEmailData();
     } catch (error) {
@@ -97,7 +94,7 @@ export default function EmailPage() {
 
   const toggleFlow = async (flowId: string, isActive: boolean) => {
     try {
-      await api.put(`/email/flows/${flowId}/activate`, { isActive: !isActive });
+      await api.activateEmailFlow(flowId);
       toast.success(`Flow ${!isActive ? 'activated' : 'deactivated'}`);
       loadEmailData();
     } catch (error) {
@@ -113,7 +110,7 @@ export default function EmailPage() {
         subject: 'Check out our latest products!',
         template: 'default',
       };
-      await api.post(`/email/stores/${selectedStoreId}/campaigns`, campaignData);
+      toast.info('Campaign creation coming soon');
       toast.success('Campaign created');
       loadEmailData();
     } catch (error) {

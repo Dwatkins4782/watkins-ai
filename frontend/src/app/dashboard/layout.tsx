@@ -4,9 +4,9 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store'
 import Link from 'next/link'
-import { 
-  Home, Store, Mail, MessageSquare, BarChart3, Lightbulb, 
-  Wrench, CreditCard, Sparkles, LogOut 
+import {
+  Home, Store, Mail, MessageSquare, BarChart3, Lightbulb,
+  Wrench, CreditCard, Sparkles, Settings, LogOut
 } from 'lucide-react'
 
 export default function DashboardLayout({
@@ -42,6 +42,7 @@ export default function DashboardLayout({
     { name: 'Optimization', href: '/dashboard/optimization', icon: Wrench },
     { name: 'DFY Builder', href: '/dashboard/dfy', icon: Sparkles },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ]
 
   return (

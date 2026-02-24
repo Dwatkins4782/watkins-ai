@@ -156,8 +156,22 @@ export default function BillingPage() {
       });
       
       setSubscription(subData);
-      // TODO: Implement invoice endpoint in backend
-      setInvoices([]);
+
+      const invoiceData = await api.getInvoices().catch((err: any) => {
+        console.error('Invoice load error:', err);
+        return [];
+      });
+
+      const formattedInvoices = (invoiceData || []).map((inv: any) => ({
+        id: inv.id,
+        amount: inv.amount / 100,
+        status: inv.status,
+        date: new Date(inv.created * 1000).toISOString(),
+        description: `${inv.plan} Plan - ${inv.number || inv.id}`,
+        invoiceUrl: inv.hostedInvoiceUrl || inv.pdfUrl,
+      }));
+
+      setInvoices(formattedInvoices);
     } catch (error) {
       console.error('Failed to load billing data:', error);
       toast.error('Failed to load billing information');
@@ -204,9 +218,10 @@ export default function BillingPage() {
   const handleCancelSubscription = async () => {
     setProcessing(true);
     try {
-      // TODO: Implement cancel endpoint in backend
-      toast.info('Cancellation feature coming soon. Please contact support.');
+      const response = await api.cancelSubscription();
+      toast.success(response.message || 'Subscription cancelled successfully');
       setShowCancelModal(false);
+      await loadBillingData();
     } catch (error: any) {
       console.error('Failed to cancel subscription:', error);
       const errorMsg = error?.response?.data?.message || error?.message || 'Failed to cancel subscription';

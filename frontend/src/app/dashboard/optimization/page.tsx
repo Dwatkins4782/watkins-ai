@@ -70,7 +70,7 @@ export default function OptimizationPage() {
     if (!selectedStoreId) return;
     
     try {
-      const data = await api.get(`/stores/${selectedStoreId}`);
+      const data = await api.getStore(selectedStoreId);
       setProducts(data.products || []);
     } catch (error) {
       console.error('Failed to load products:', error);
@@ -82,7 +82,7 @@ export default function OptimizationPage() {
     
     setLoading(true);
     try {
-      const data = await api.get(`/optimization/stores/${selectedStoreId}/optimized-products`);
+      const data = await api.getOptimizedProducts(selectedStoreId);
       setOptimizedProducts(data);
     } catch (error) {
       console.error('Failed to load optimized products:', error);
@@ -95,7 +95,7 @@ export default function OptimizationPage() {
   const optimizeProduct = async (productId: string) => {
     setOptimizing(productId);
     try {
-      await api.post(`/optimization/products/${productId}/optimize`);
+      await api.optimizeProduct(productId);
       toast.success('Product optimization started');
       loadOptimizedProducts();
     } catch (error) {

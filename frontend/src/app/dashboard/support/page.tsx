@@ -65,7 +65,7 @@ export default function SupportPage() {
     
     setLoading(true);
     try {
-      const data = await api.get(`/support/stores/${selectedStoreId}/tickets`);
+      const data = await api.getSupportTickets(selectedStoreId);
       setTickets(data);
     } catch (error) {
       console.error('Failed to load tickets:', error);
@@ -78,7 +78,7 @@ export default function SupportPage() {
   const createTicket = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post(`/support/stores/${selectedStoreId}/tickets`, newTicket);
+      await api.createSupportTicket(selectedStoreId, newTicket);
       toast.success('Support ticket created');
       setShowCreateModal(false);
       setNewTicket({

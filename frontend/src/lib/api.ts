@@ -87,10 +87,18 @@ export const dfyApi = {
   getProject: (projectId: string) => api.get(`/dfy/projects/${projectId}`),
 }
 
+// Optimization API
+export const optimizationApi = {
+  getOptimizedProducts: (storeId: string) => api.get(`/optimization/stores/${storeId}/optimized-products`),
+  optimizeProduct: (productId: string) => api.post(`/optimization/products/${productId}/optimize`),
+}
+
 // Billing API
 export const billingApi = {
   createCheckout: (plan: string) => api.post('/billing/checkout', { plan }),
   getSubscription: () => api.get('/billing/subscription'),
+  getInvoices: () => api.get('/billing/invoices'),
+  cancelSubscription: () => api.post('/billing/subscription/cancel'),
 }
 
 // Simplified API exports
@@ -135,7 +143,13 @@ export default {
   getDFYProjects: () => dfyApi.getProjects().then(res => res.data),
   getDFYProject: (projectId: string) => dfyApi.getProject(projectId).then(res => res.data),
 
+  // Optimization
+  getOptimizedProducts: (storeId: string) => optimizationApi.getOptimizedProducts(storeId).then(res => res.data),
+  optimizeProduct: (productId: string) => optimizationApi.optimizeProduct(productId).then(res => res.data),
+
   // Billing
   createCheckout: (plan: string) => billingApi.createCheckout(plan).then(res => res.data),
   getSubscription: () => billingApi.getSubscription().then(res => res.data),
+  getInvoices: () => billingApi.getInvoices().then(res => res.data),
+  cancelSubscription: () => billingApi.cancelSubscription().then(res => res.data),
 }
