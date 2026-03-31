@@ -4,9 +4,9 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store'
 import Link from 'next/link'
-import {
-  Home, Store, Mail, MessageSquare, BarChart3, Lightbulb,
-  Wrench, CreditCard, Sparkles, Settings, LogOut
+import { 
+  Home, Store, Mail, MessageSquare, BarChart3, Lightbulb, 
+  Wrench, CreditCard, Sparkles, LogOut, Settings, Smartphone, Truck
 } from 'lucide-react'
 
 export default function DashboardLayout({
@@ -35,12 +35,14 @@ export default function DashboardLayout({
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Stores', href: '/dashboard/stores', icon: Store },
-    { name: 'Email & SMS', href: '/dashboard/email', icon: Mail },
+    { name: 'Email', href: '/dashboard/email', icon: Mail },
+    { name: 'SMS', href: '/dashboard/sms', icon: Smartphone },
     { name: 'Support', href: '/dashboard/support', icon: MessageSquare },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Recommendations', href: '/dashboard/recommendations', icon: Lightbulb },
     { name: 'Optimization', href: '/dashboard/optimization', icon: Wrench },
     { name: 'DFY Builder', href: '/dashboard/dfy', icon: Sparkles },
+    { name: 'Dropshipping', href: '/dashboard/dropshipping', icon: Truck },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ]

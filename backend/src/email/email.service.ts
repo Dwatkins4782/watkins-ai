@@ -65,6 +65,29 @@ export class EmailService {
     });
   }
 
+  async pauseFlow(flowId: string) {
+    return this.prisma.emailFlow.update({
+      where: { id: flowId },
+      data: { status: 'PAUSED' },
+    });
+  }
+
+  async getFlow(flowId: string) {
+    return this.prisma.emailFlow.findUnique({
+      where: { id: flowId },
+    });
+  }
+
+  async deleteFlow(flowId: string) {
+    return this.prisma.emailFlow.delete({
+      where: { id: flowId },
+    });
+  }
+
+  async queueEmail(to: string, subject: string, html: string) {
+    await this.emailQueue.add('send-email', { to, subject, html });
+  }
+
   async sendEmail(to: string, subject: string, html: string) {
     const from = this.configService.get('sendgrid.fromEmail');
     

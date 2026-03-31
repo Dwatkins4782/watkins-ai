@@ -101,7 +101,15 @@ export class BillingService {
     if (!this.stripe) return;
 
     const webhookSecret = this.configService.get('stripe.webhookSecret');
-    const event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    let event: Stripe.Event;
+    try {
+      event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    } catch (err) {
+      this.logger.error(`Webhook signature verification failed: ${err.message}`);
+      throw new Error('Invalid webhook signature');
+    }
+
+    this.logger.log(`Stripe webhook received: ${event.type}`);
 
     switch (event.type) {
       case 'checkout.session.completed':
@@ -112,6 +120,12 @@ export class BillingService {
         break;
       case 'customer.subscription.deleted':
         await this.handleSubscriptionCancelled(event.data.object);
+        break;
+      case 'invoice.paid':
+        await this.handleInvoicePaid(event.data.object);
+        break;
+      case 'invoice.payment_failed':
+        await this.handleInvoicePaymentFailed(event.data.object);
         break;
     }
   }
@@ -147,10 +161,131 @@ export class BillingService {
     });
   }
 
+  private async handleInvoicePaid(invoice: any) {
+    const subscription = await this.prisma.subscription.findFirst({
+      where: { stripeSubscriptionId: invoice.subscription },
+    });
+
+    if (subscription) {
+      await this.prisma.invoice.create({
+        data: {
+          tenantId: subscription.tenantId,
+          stripeInvoiceId: invoice.id,
+          amount: invoice.amount_paid / 100,
+          currency: invoice.currency,
+          status: 'paid',
+          paidAt: new Date(invoice.status_transitions?.paid_at * 1000 || Date.now()),
+        },
+      });
+    }
+  }
+
+  private async handleInvoicePaymentFailed(invoice: any) {
+    const subscription = await this.prisma.subscription.findFirst({
+      where: { stripeSubscriptionId: invoice.subscription },
+    });
+
+    if (subscription) {
+      await this.prisma.invoice.create({
+        data: {
+          tenantId: subscription.tenantId,
+          stripeInvoiceId: invoice.id,
+          amount: invoice.amount_due / 100,
+          currency: invoice.currency,
+          status: 'failed',
+        },
+      });
+
+      await this.prisma.subscription.update({
+        where: { id: subscription.id },
+        data: { status: 'past_due' },
+      });
+    }
+  }
+
   async getSubscription(tenantId: string) {
     return this.prisma.subscription.findFirst({
       where: { tenantId },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getInvoices(tenantId: string) {
+    return this.prisma.invoice.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
+  async cancelSubscription(tenantId: string) {
+    const subscription = await this.prisma.subscription.findFirst({
+      where: { tenantId, status: 'active' },
+    });
+
+    if (!subscription) {
+      throw new Error('No active subscription found');
+    }
+
+    if (this.stripe && subscription.stripeSubscriptionId) {
+      await this.stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+        cancel_at_period_end: true,
+      });
+    }
+
+    await this.prisma.subscription.update({
+      where: { id: subscription.id },
+      data: { cancelAtPeriodEnd: true },
+    });
+
+    return { message: 'Subscription will cancel at end of current period' };
+  }
+
+  async updatePlan(tenantId: string, newPlan: string) {
+    const subscription = await this.prisma.subscription.findFirst({
+      where: { tenantId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!subscription) {
+      throw new Error('No subscription found');
+    }
+
+    const planLimits: Record<string, { stores: number; products: number; emails: number; sms: number }> = {
+      FREE: { stores: 1, products: 100, emails: 1000, sms: 100 },
+      STARTER: { stores: 1, products: 500, emails: 5000, sms: 500 },
+      GROWTH: { stores: 5, products: 5000, emails: 25000, sms: 2500 },
+      PROFESSIONAL: { stores: 999, products: 999999, emails: 100000, sms: 10000 },
+      ENTERPRISE: { stores: 999, products: 999999, emails: 999999, sms: 999999 },
+    };
+
+    const planEnum = newPlan.toUpperCase();
+    const limits = planLimits[planEnum];
+    if (!limits) {
+      throw new Error(`Invalid plan: ${newPlan}`);
+    }
+
+    if (this.stripe && subscription.stripeSubscriptionId) {
+      const priceId = this.configService.get(`stripe.priceIds.${newPlan.toLowerCase()}`);
+      if (priceId) {
+        const stripeSubscription = await this.stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+        await this.stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+          items: [{ id: stripeSubscription.items.data[0].id, price: priceId }],
+          proration_behavior: 'create_prorations',
+        });
+      }
+    }
+
+    return this.prisma.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        plan: planEnum as any,
+        maxStores: limits.stores,
+        maxProducts: limits.products,
+        maxEmailsPerMonth: limits.emails,
+        maxSmsPerMonth: limits.sms,
+        cancelAtPeriodEnd: false,
+      },
     });
   }
 }

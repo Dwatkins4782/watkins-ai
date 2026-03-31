@@ -13,7 +13,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [creatingTest, setCreatingTest] = useState(false)
 
+  const isDev = process.env.NODE_ENV === 'development'
+
   const createTestUser = async () => {
+    if (!isDev) return
     setCreatingTest(true)
     try {
       const response = await authApi.register({
@@ -27,7 +30,6 @@ export default function LoginPage() {
       toast.success('Test user created and logged in!')
       router.push('/dashboard')
     } catch (error: any) {
-      // User might already exist, try to login instead
       try {
         const loginResponse = await authApi.login({
           email: 'test@example.com',
@@ -38,7 +40,6 @@ export default function LoginPage() {
         router.push('/dashboard')
       } catch (loginError: any) {
         toast.error('Failed to create or login test user')
-        alert('Error: ' + (loginError.response?.data?.message || loginError.message))
       }
     } finally {
       setCreatingTest(false)
@@ -57,8 +58,6 @@ export default function LoginPage() {
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Invalid email or password'
       toast.error(errorMessage)
-      alert(errorMessage) // Also show as alert for visibility
-      console.error('Login error:', error)
     } finally {
       setLoading(false)
     }
@@ -118,6 +117,13 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <div className="mt-3 text-right">
+          <a href="/auth/forgot-password" className="text-sm text-purple-600 hover:text-purple-700">
+            Forgot your password?
+          </a>
+        </div>
+
+        {isDev && (
         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-800 mb-2">
             <strong>Test Account:</strong><br />
@@ -130,9 +136,10 @@ export default function LoginPage() {
             disabled={creatingTest}
             className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 text-sm"
           >
-            {creatingTest ? 'Creating...' : '🚀 Create & Login Test User'}
+            {creatingTest ? 'Creating...' : 'Create & Login Test User'}
           </button>
         </div>
+        )}
 
         <p className="mt-6 text-center text-gray-600">
           Don't have an account?{' '}

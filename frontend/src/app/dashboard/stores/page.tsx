@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
+import { toast } from 'sonner';
 
 export default function StoresPage() {
   const { user } = useAuthStore();
@@ -38,17 +39,17 @@ export default function StoresPage() {
       setNewStore({ name: '', url: '', platform: 'SHOPIFY' });
       loadStores();
     } catch (error: any) {
-      alert('Failed to add store: ' + (error.response?.data?.message || error.message));
+      toast.error(error.response?.data?.message || 'Failed to add store');
     }
   };
 
   const handleCrawl = async (storeId: string) => {
     try {
       await api.crawlWebsite(storeId);
-      alert('Website crawl started! Check back in a few minutes for results.');
+      toast.success('Website crawl started! Check back in a few minutes for results.');
       loadStores();
     } catch (error: any) {
-      alert('Failed to start crawl: ' + (error.response?.data?.message || error.message));
+      toast.error(error.response?.data?.message || 'Failed to start crawl');
     }
   };
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/lib/store';
-import api from '@/lib/api';
+import apiHelpers, { api } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface Recommendation {
@@ -40,7 +40,7 @@ export default function RecommendationsPage() {
 
   const loadStores = async () => {
     try {
-      const data = await api.getStores();
+      const data = await apiHelpers.getStores();
       setStores(data);
       if (data.length > 0) {
         setSelectedStoreId(data[0].id);
@@ -58,8 +58,8 @@ export default function RecommendationsPage() {
     
     setLoading(true);
     try {
-      const data = await api.getRecommendations(selectedStoreId);
-      setRecommendations(data);
+      const res = await api.get(`/recommendations/stores/${selectedStoreId}`);
+      setRecommendations(res.data);
     } catch (error) {
       console.error('Failed to load recommendations:', error);
       toast.error('Failed to load recommendations');
@@ -73,7 +73,7 @@ export default function RecommendationsPage() {
     
     setGenerating(true);
     try {
-      await api.generateRecommendations(selectedStoreId);
+      await api.post(`/recommendations/stores/${selectedStoreId}/generate`);  
       toast.success('Recommendations generated successfully');
       loadRecommendations();
     } catch (error) {

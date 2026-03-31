@@ -1,12 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
-export class AiService {
+export class AiService implements OnModuleInit {
   private readonly logger = new Logger(AiService.name);
   private client: OpenAIClient;
   private deploymentName: string;
+  private prompts: Map<string, string> = new Map();
 
   constructor(private configService: ConfigService) {
     const endpoint = this.configService.get('azure.openai.endpoint');
@@ -19,6 +22,42 @@ export class AiService {
     } else {
       this.logger.warn('⚠️  Azure OpenAI credentials not found. AI features will be limited.');
     }
+  }
+
+  onModuleInit() {
+    this.loadPrompts();
+  }
+
+  private loadPrompts() {
+    const promptsDir = path.join(process.cwd(), 'prompts');
+    const promptFiles: Record<string, string> = {
+      'business_analyzer': 'module1_business_analyzer.md',
+      'email_sms': 'module2_email_sms.md',
+      'analytics_insights': 'module3_analytics_insights.md',
+      'recommendations': 'module4_recommendations.md',
+      'support_ai': 'module5_support_ai.md',
+      'website_optimization': 'module6_website_optimization.md',
+      'saas_billing': 'module7_saas_billing.md',
+      'dfy_builder': 'module8_dfy_builder.md',
+    };
+
+    for (const [key, filename] of Object.entries(promptFiles)) {
+      const filePath = path.join(promptsDir, filename);
+      try {
+        if (fs.existsSync(filePath)) {
+          this.prompts.set(key, fs.readFileSync(filePath, 'utf-8'));
+          this.logger.log(`Loaded prompt: ${key}`);
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to load prompt ${key}: ${error.message}`);
+      }
+    }
+
+    this.logger.log(`✅ Loaded ${this.prompts.size}/${Object.keys(promptFiles).length} AI prompts`);
+  }
+
+  private getPrompt(key: string): string | undefined {
+    return this.prompts.get(key);
   }
 
   async generateCompletion(
@@ -84,7 +123,8 @@ export class AiService {
   }
 
   async analyzeBrandVoice(websiteContent: string): Promise<string> {
-    const systemPrompt = `You are a brand voice analyst. Analyze the provided website content and extract the brand's unique voice, tone, and messaging style.`;
+    const systemPrompt = this.getPrompt('business_analyzer') || 
+      `You are a brand voice analyst. Analyze the provided website content and extract the brand's unique voice, tone, and messaging style.`;
     
     const prompt = `Analyze this website content and describe the brand voice in 2-3 paragraphs:\n\n${websiteContent}`;
 
@@ -96,7 +136,8 @@ export class AiService {
     brandVoice: string;
     productContext?: string;
   }): Promise<{ subject: string; preheader: string; content: string }> {
-    const systemPrompt = `You are an expert email marketer. Generate high-converting email content that matches the brand voice.`;
+    const systemPrompt = this.getPrompt('email_sms') ||
+      `You are an expert email marketer. Generate high-converting email content that matches the brand voice.`;
     
     const prompt = `
 Generate a ${params.flowType} email with:
@@ -118,7 +159,8 @@ Return JSON with: subject, preheader, content (HTML)
     brandVoice: string;
     maxLength?: number;
   }): Promise<string> {
-    const systemPrompt = `You are an expert SMS marketer. Generate concise, engaging SMS messages that drive action.`;
+    const systemPrompt = this.getPrompt('email_sms') ||
+      `You are an expert SMS marketer. Generate concise, engaging SMS messages that drive action.`;
     
     const prompt = `
 Generate a ${params.flowType} SMS message (max ${params.maxLength || 160} characters):
@@ -133,7 +175,8 @@ Keep it short, actionable, and on-brand.
     productData: any[];
     customerHistory?: any[];
   }): Promise<any[]> {
-    const systemPrompt = `You are an e-commerce recommendation engine. Analyze products and suggest intelligent bundles, upsells, and cross-sells.`;
+    const systemPrompt = this.getPrompt('recommendations') ||
+      `You are an e-commerce recommendation engine. Analyze products and suggest intelligent bundles, upsells, and cross-sells.`;
     
     const prompt = `
 Analyze these products and generate recommendations:
@@ -156,7 +199,8 @@ Return JSON array of recommendations with: type, productIds, reason, estimatedVa
     suggestedResponse: string;
     confidence: number;
   }> {
-    const systemPrompt = `You are a customer support AI. Analyze support tickets and suggest appropriate responses.`;
+    const systemPrompt = this.getPrompt('support_ai') ||
+      `You are a customer support AI. Analyze support tickets and suggest appropriate responses.`;
     
     const prompt = `
 Analyze this support ticket:
@@ -180,7 +224,8 @@ Return JSON with: sentiment, priority, suggestedResponse, confidence (0-1)
     seoScore: number;
     suggestions: string[];
   }> {
-    const systemPrompt = `You are an e-commerce conversion optimization expert. Rewrite product content for maximum conversion and SEO.`;
+    const systemPrompt = this.getPrompt('website_optimization') ||
+      `You are an e-commerce conversion optimization expert. Rewrite product content for maximum conversion and SEO.`;
     
     const prompt = `
 Optimize this product page:
@@ -201,7 +246,8 @@ Return JSON with: optimizedTitle, optimizedDescription, seoScore (0-100), sugges
     typography: any;
     voiceDescription: string;
   }> {
-    const systemPrompt = `You are a brand strategist. Create complete, professional branding for e-commerce stores.`;
+    const systemPrompt = this.getPrompt('dfy_builder') ||
+      `You are a brand strategist. Create complete, professional branding for e-commerce stores.`;
     
     const prompt = `
 Create complete branding for a ${niche} e-commerce store.
@@ -220,7 +266,8 @@ Return JSON with:
     storeData: any;
     analyticsData: any;
   }): Promise<any[]> {
-    const systemPrompt = `You are a business growth analyst. Analyze e-commerce data and generate actionable insights.`;
+    const systemPrompt = this.getPrompt('analytics_insights') ||
+      `You are a business growth analyst. Analyze e-commerce data and generate actionable insights.`;
     
     const prompt = `
 Analyze this e-commerce store and generate growth insights:

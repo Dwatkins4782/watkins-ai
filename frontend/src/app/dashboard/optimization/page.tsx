@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/lib/store';
-import api from '@/lib/api';
+import apiHelpers, { api } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface Product {
@@ -53,7 +53,7 @@ export default function OptimizationPage() {
 
   const loadStores = async () => {
     try {
-      const data = await api.getStores();
+      const data = await apiHelpers.getStores();
       setStores(data);
       if (data.length > 0) {
         setSelectedStoreId(data[0].id);
@@ -70,8 +70,8 @@ export default function OptimizationPage() {
     if (!selectedStoreId) return;
     
     try {
-      const data = await api.getStore(selectedStoreId);
-      setProducts(data.products || []);
+      const res = await api.get(`/stores/${selectedStoreId}`);
+      setProducts(res.data.products || []);
     } catch (error) {
       console.error('Failed to load products:', error);
     }
@@ -82,8 +82,8 @@ export default function OptimizationPage() {
     
     setLoading(true);
     try {
-      const data = await api.getOptimizedProducts(selectedStoreId);
-      setOptimizedProducts(data);
+      const res = await api.get(`/optimization/stores/${selectedStoreId}/optimized-products`);
+      setOptimizedProducts(res.data);
     } catch (error) {
       console.error('Failed to load optimized products:', error);
       toast.error('Failed to load optimizations');
@@ -95,7 +95,7 @@ export default function OptimizationPage() {
   const optimizeProduct = async (productId: string) => {
     setOptimizing(productId);
     try {
-      await api.optimizeProduct(productId);
+      await api.post(`/optimization/products/${productId}/optimize`);
       toast.success('Product optimization started');
       loadOptimizedProducts();
     } catch (error) {

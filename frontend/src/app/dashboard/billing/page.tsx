@@ -51,57 +51,81 @@ const PLANS: Plan[] = [
     interval: 'month',
     features: [
       '1 Store',
-      '50 Products',
-      'Basic Analytics',
-      '5 Email Campaigns/month',
-      '10 AI Recommendations/month',
+      '100 Products',
+      '1,000 Emails/month',
+      '100 SMS/month',
+      'Basic Profit Score',
+      'Community Support',
     ],
     limits: {
       stores: 1,
-      products: 50,
+      products: 100,
       analyticsReports: 10,
-      emailCampaigns: 5,
+      emailCampaigns: 1000,
       aiRecommendations: 10,
     },
   },
   {
     id: 'starter',
     name: 'Starter',
-    price: 29,
+    price: 99,
     interval: 'month',
     features: [
-      '3 Stores',
+      '1 Store',
       '500 Products',
-      'Advanced Analytics',
-      '50 Email Campaigns/month',
-      '100 AI Recommendations/month',
-      'Priority Support',
+      '5,000 Emails/month',
+      '500 SMS/month',
+      'Full Profit Score',
+      'Email Support',
+      'Basic AI Recommendations',
     ],
     limits: {
-      stores: 3,
+      stores: 1,
       products: 500,
       analyticsReports: 100,
-      emailCampaigns: 50,
+      emailCampaigns: 5000,
       aiRecommendations: 100,
+    },
+  },
+  {
+    id: 'growth',
+    name: 'Growth',
+    price: 299,
+    interval: 'month',
+    features: [
+      '5 Stores',
+      '5,000 Products',
+      '25,000 Emails/month',
+      '2,500 SMS/month',
+      'Advanced Analytics',
+      'Priority Support',
+      'Smart Recommendations',
+    ],
+    limits: {
+      stores: 5,
+      products: 5000,
+      analyticsReports: -1,
+      emailCampaigns: 25000,
+      aiRecommendations: -1,
     },
   },
   {
     id: 'professional',
     name: 'Professional',
-    price: 79,
+    price: 699,
     interval: 'month',
     features: [
-      '10 Stores',
+      'Unlimited Stores',
       'Unlimited Products',
-      'Advanced Analytics + Reports',
-      'Unlimited Email Campaigns',
-      'Unlimited AI Recommendations',
-      'Priority Support',
-      'Custom Integrations',
+      '100,000 Emails/month',
+      '10,000 SMS/month',
+      'Custom AI Models',
+      'Dedicated Support',
       'DFY Store Builder',
+      'API Access',
     ],
     limits: {
-      stores: 10,
+      stores: -1,
       products: -1,
       analyticsReports: -1,
       emailCampaigns: -1,
@@ -109,19 +133,19 @@ const PLANS: Plan[] = [
     },
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 299,
+    id: 'dropship_elite',
+    name: 'Dropship Elite',
+    price: 999,
     interval: 'month',
     features: [
-      'Unlimited Stores',
-      'Unlimited Products',
-      'White-label Solution',
-      'Dedicated Account Manager',
-      'Custom AI Training',
-      'API Access',
-      '99.9% SLA',
-      'Advanced Security',
+      'Everything in Professional',
+      'AI-Matched Dropship Suppliers',
+      'Full Auto Supplier Setup ($499 value)',
+      'Auto Product Import (500+)',
+      'Auto-Fulfillment & Inventory Sync',
+      'Automated Pricing & Markup',
+      'Monthly Supplier Performance Reviews',
+      'Priority Dropship Support (90 days)',
     ],
     limits: {
       stores: -1,
@@ -157,21 +181,12 @@ export default function BillingPage() {
       
       setSubscription(subData);
 
-      const invoiceData = await api.getInvoices().catch((err: any) => {
-        console.error('Invoice load error:', err);
-        return [];
-      });
-
-      const formattedInvoices = (invoiceData || []).map((inv: any) => ({
-        id: inv.id,
-        amount: inv.amount / 100,
-        status: inv.status,
-        date: new Date(inv.created * 1000).toISOString(),
-        description: `${inv.plan} Plan - ${inv.number || inv.id}`,
-        invoiceUrl: inv.hostedInvoiceUrl || inv.pdfUrl,
-      }));
-
-      setInvoices(formattedInvoices);
+      try {
+        const invoiceData = await api.getInvoices();
+        setInvoices(invoiceData || []);
+      } catch {
+        setInvoices([]);
+      }
     } catch (error) {
       console.error('Failed to load billing data:', error);
       toast.error('Failed to load billing information');
@@ -218,8 +233,8 @@ export default function BillingPage() {
   const handleCancelSubscription = async () => {
     setProcessing(true);
     try {
-      const response = await api.cancelSubscription();
-      toast.success(response.message || 'Subscription cancelled successfully');
+      await api.cancelSubscription();
+      toast.success('Subscription cancelled. It will remain active until the end of the billing period.');
       setShowCancelModal(false);
       await loadBillingData();
     } catch (error: any) {

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import api from '@/lib/api';
+import apiClient from '@/lib/api';
+import { toast } from 'sonner';
 
 export default function StoreDetailsPage() {
   const params = useParams();
@@ -19,8 +20,8 @@ export default function StoreDetailsPage() {
   const loadStoreData = async () => {
     try {
       const [storeData, reportsData] = await Promise.all([
-        api.getStore(storeId),
-        api.getCrawlReports(storeId),
+        apiClient.getStore(storeId),
+        apiClient.getCrawlReports(storeId),
       ]);
       setStore(storeData);
       setReports(reportsData);
@@ -33,21 +34,21 @@ export default function StoreDetailsPage() {
 
   const handleCrawl = async () => {
     try {
-      await api.crawlWebsite(storeId);
-      alert('Website crawl started! This may take a few minutes.');
+      await apiClient.crawlWebsite(storeId);
+      toast.success('Website crawl started! This may take a few minutes.');
       setTimeout(loadStoreData, 2000);
     } catch (error: any) {
-      alert('Failed to start crawl: ' + (error.response?.data?.message || error.message));
+      toast.error('Failed to start crawl: ' + (error.response?.data?.message || error.message));
     }
   };
 
   const handleGenerateInsights = async () => {
     try {
-      await api.generateInsights(storeId);
-      alert('Generating AI insights! Check back in a moment.');
+      await apiClient.generateInsights(storeId);
+      toast.success('Generating AI insights! Check back in a moment.');
       setTimeout(loadStoreData, 2000);
     } catch (error: any) {
-      alert('Failed to generate insights: ' + (error.response?.data?.message || error.message));
+      toast.error('Failed to generate insights: ' + (error.response?.data?.message || error.message));
     }
   };
 

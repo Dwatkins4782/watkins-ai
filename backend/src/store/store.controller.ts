@@ -2,10 +2,11 @@ import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nes
 import { StoreService } from './store.service';
 import { CreateStoreDto, UpdateStoreDto } from './dto/store.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../common/guards/tenant.guard';
 import { CurrentUser } from '../common/decorators/user.decorator';
 
 @Controller('stores')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class StoreController {
   constructor(private storeService: StoreService) {}
 

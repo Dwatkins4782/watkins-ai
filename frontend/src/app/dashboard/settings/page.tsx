@@ -2,448 +2,256 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/lib/store';
-import api from '@/lib/api';
+import { userApi, authApi } from '@/lib/api';
 import { toast } from 'sonner';
-
-interface UserProfile {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  tenantId: string;
-}
-
-interface TenantSettings {
-  companyName: string;
-  billingEmail: string;
-  notificationEmail: string;
-  timezone: string;
-  language: string;
-}
+import { User, Lock, Bell, Shield } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user } = useAuthStore();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [tenantSettings, setTenantSettings] = useState<TenantSettings>({
-    companyName: '',
-    billingEmail: '',
-    notificationEmail: '',
-    timezone: 'UTC',
-    language: 'en',
-  });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'security'>('profile');
+  const { user, setUser } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'notifications'>('profile');
 
-  const [passwordForm, setPasswordForm] = useState({
+  const [profile, setProfile] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+  });
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
-
-  const [notificationPreferences, setNotificationPreferences] = useState({
-    emailNotifications: true,
-    smsNotifications: false,
-    marketingEmails: false,
-    productUpdates: true,
-    weeklyReports: true,
-    securityAlerts: true,
-  });
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    setLoading(true);
-    try {
-      const userData = await api.me();
-      setProfile(userData);
-
-      setTenantSettings({
-        companyName: userData.tenant?.name || '',
-        billingEmail: userData.tenant?.billingEmail || userData.email,
-        notificationEmail: userData.email,
-        timezone: 'UTC',
-        language: 'en',
+    if (user) {
+      setProfile({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
       });
-    } catch (error) {
-      console.error('Failed to load settings:', error);
-      toast.error('Failed to load settings');
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [user]);
 
-  const handleSaveProfile = async () => {
-    setSaving(true);
+  const handleProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileSaving(true);
     try {
-      toast.success('Profile settings saved successfully');
-      await loadSettings();
-    } catch (error) {
-      console.error('Failed to save profile:', error);
-      toast.error('Failed to save profile settings');
+      const updated = await userApi.updateProfile(profile).then(res => res.data);
+      setUser({ ...user, ...updated });
+      toast.success('Profile updated');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update profile');
     } finally {
-      setSaving(false);
+      setProfileSaving(false);
     }
   };
 
-  const handleSaveNotifications = async () => {
-    setSaving(true);
-    try {
-      toast.success('Notification preferences saved successfully');
-    } catch (error) {
-      console.error('Failed to save notifications:', error);
-      toast.error('Failed to save notification preferences');
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handleChangePassword = async () => {
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error('New passwords do not match');
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (passwords.newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
       return;
     }
 
-    if (passwordForm.newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters long');
-      return;
-    }
-
-    setSaving(true);
+    setPasswordSaving(true);
     try {
+      await authApi.changePassword(passwords.currentPassword, passwords.newPassword);
+      setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
       toast.success('Password changed successfully');
-      setPasswordForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      });
-    } catch (error) {
-      console.error('Failed to change password:', error);
-      toast.error('Failed to change password');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to change password');
     } finally {
-      setSaving(false);
+      setPasswordSaving(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  const tabs = [
+    { id: 'profile' as const, name: 'Profile', icon: User },
+    { id: 'password' as const, name: 'Password', icon: Lock },
+    { id: 'notifications' as const, name: 'Notifications', icon: Bell },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="max-w-4xl">
+      <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
+        <p className="text-gray-600 mt-2">Manage your account settings and preferences</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="border-b border-gray-200">
-          <nav className="flex -mb-px">
+      <div className="flex gap-8">
+        {/* Sidebar Tabs */}
+        <div className="w-48 space-y-1">
+          {tabs.map((tab) => (
             <button
-              onClick={() => setActiveTab('profile')}
-              className={`px-6 py-4 text-sm font-medium border-b-2 ${
-                activeTab === 'profile'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg text-left transition ${
+                activeTab === tab.id
+                  ? 'bg-purple-50 text-purple-600 font-medium'
+                  : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              Profile
+              <tab.icon className="w-5 h-5" />
+              {tab.name}
             </button>
-            <button
-              onClick={() => setActiveTab('notifications')}
-              className={`px-6 py-4 text-sm font-medium border-b-2 ${
-                activeTab === 'notifications'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Notifications
-            </button>
-            <button
-              onClick={() => setActiveTab('security')}
-              className={`px-6 py-4 text-sm font-medium border-b-2 ${
-                activeTab === 'security'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Security
-            </button>
-          </nav>
+          ))}
         </div>
 
-        <div className="p-6">
+        {/* Content */}
+        <div className="flex-1">
           {activeTab === 'profile' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h2>
-
-                <div className="space-y-4">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile Information</h2>
+              <form onSubmit={handleProfileSave} className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={profile?.email || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Name
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                     <input
                       type="text"
-                      value={profile?.name || ''}
-                      onChange={(e) => setProfile(profile ? { ...profile, name: e.target.value } : null)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={profile.firstName}
+                      onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Role
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
                     <input
                       type="text"
-                      value={profile?.role || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed"
+                      value={profile.lastName}
+                      onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
                 </div>
-              </div>
 
-              <div className="border-t border-gray-200 pt-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Company Settings</h2>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Company Name
-                    </label>
-                    <input
-                      type="text"
-                      value={tenantSettings.companyName}
-                      onChange={(e) => setTenantSettings({ ...tenantSettings, companyName: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Billing Email
-                    </label>
-                    <input
-                      type="email"
-                      value={tenantSettings.billingEmail}
-                      onChange={(e) => setTenantSettings({ ...tenantSettings, billingEmail: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Timezone
-                      </label>
-                      <select
-                        value={tenantSettings.timezone}
-                        onChange={(e) => setTenantSettings({ ...tenantSettings, timezone: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="UTC">UTC</option>
-                        <option value="America/New_York">Eastern Time</option>
-                        <option value="America/Chicago">Central Time</option>
-                        <option value="America/Denver">Mountain Time</option>
-                        <option value="America/Los_Angeles">Pacific Time</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Language
-                      </label>
-                      <select
-                        value={tenantSettings.language}
-                        onChange={(e) => setTenantSettings({ ...tenantSettings, language: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="en">English</option>
-                        <option value="es">Spanish</option>
-                        <option value="fr">French</option>
-                        <option value="de">German</option>
-                      </select>
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={user?.email || ''}
+                    disabled
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                 </div>
-              </div>
 
-              <div className="flex justify-end pt-4">
-                <button
-                  onClick={handleSaveProfile}
-                  disabled={saving}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">
+                      Email {user?.emailVerified ? (
+                        <span className="text-green-600 font-medium">verified</span>
+                      ) : (
+                        <span className="text-yellow-600 font-medium">not verified</span>
+                      )}
+                    </span>
+                  </div>
+                  {!user?.emailVerified && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await authApi.resendVerification();
+                          toast.success('Verification email sent');
+                        } catch {
+                          toast.error('Failed to send verification email');
+                        }
+                      }}
+                      className="text-sm text-purple-600 hover:underline"
+                    >
+                      Resend verification
+                    </button>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t">
+                  <button
+                    type="submit"
+                    disabled={profileSaving}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition"
+                  >
+                    {profileSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {activeTab === 'password' && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Change Password</h2>
+              <form onSubmit={handlePasswordChange} className="space-y-6 max-w-md">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                  <input
+                    type="password"
+                    value={passwords.currentPassword}
+                    onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                  <input
+                    type="password"
+                    value={passwords.newPassword}
+                    onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                  <input
+                    type="password"
+                    value={passwords.confirmPassword}
+                    onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="pt-4 border-t">
+                  <button
+                    type="submit"
+                    disabled={passwordSaving}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition"
+                  >
+                    {passwordSaving ? 'Changing...' : 'Change Password'}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 
           {activeTab === 'notifications' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Notification Preferences</h2>
-                <p className="text-sm text-gray-600 mb-6">
-                  Choose what notifications you want to receive
-                </p>
-
-                <div className="space-y-4">
-                  {[
-                    { key: 'emailNotifications', label: 'Email Notifications', desc: 'Receive notifications via email' },
-                    { key: 'smsNotifications', label: 'SMS Notifications', desc: 'Receive important alerts via SMS' },
-                    { key: 'marketingEmails', label: 'Marketing Emails', desc: 'Receive tips and promotional content' },
-                    { key: 'productUpdates', label: 'Product Updates', desc: 'Get notified about new features' },
-                    { key: 'weeklyReports', label: 'Weekly Reports', desc: 'Receive weekly performance summaries' },
-                    { key: 'securityAlerts', label: 'Security Alerts', desc: 'Important security notifications (recommended)' },
-                  ].map((item) => (
-                    <div key={item.key} className="flex items-center justify-between py-3 border-b border-gray-200 last:border-0">
-                      <div>
-                        <p className="font-medium text-gray-900">{item.label}</p>
-                        <p className="text-sm text-gray-500">{item.desc}</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={notificationPreferences[item.key as keyof typeof notificationPreferences]}
-                          onChange={(e) =>
-                            setNotificationPreferences({
-                              ...notificationPreferences,
-                              [item.key]: e.target.checked,
-                            })
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-4">
-                <button
-                  onClick={handleSaveNotifications}
-                  disabled={saving}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {saving ? 'Saving...' : 'Save Preferences'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'security' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
-
-                <div className="space-y-4 max-w-md">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Current Password
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordForm.currentPassword}
-                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      New Password
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordForm.newPassword}
-                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">At least 8 characters</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Confirm New Password
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <button
-                    onClick={handleChangePassword}
-                    disabled={saving || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {saving ? 'Changing...' : 'Change Password'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200 pt-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Two-Factor Authentication</h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  Add an extra layer of security to your account
-                </p>
-                <button className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                  Enable 2FA
-                </button>
-              </div>
-
-              <div className="border-t border-gray-200 pt-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Active Sessions</h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  Manage devices where you are currently logged in
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Notification Preferences</h2>
+              <div className="space-y-6">
+                {[
+                  { label: 'Email notifications', description: 'Receive email alerts for important events', defaultChecked: true },
+                  { label: 'AI Insights', description: 'Get notified when new AI insights are available', defaultChecked: true },
+                  { label: 'Weekly reports', description: 'Receive a weekly summary of store performance', defaultChecked: true },
+                  { label: 'Marketing updates', description: 'Product updates and feature announcements', defaultChecked: false },
+                ].map((pref) => (
+                  <div key={pref.label} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
                     <div>
-                      <p className="font-medium text-gray-900">Current Session</p>
-                      <p className="text-sm text-gray-500">Last active: Just now</p>
+                      <p className="font-medium text-gray-900">{pref.label}</p>
+                      <p className="text-sm text-gray-500">{pref.description}</p>
                     </div>
-                    <span className="text-green-600 text-sm font-medium">Active</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" defaultChecked={pref.defaultChecked} className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
                   </div>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200 pt-6">
-                <h2 className="text-lg font-semibold text-red-600 mb-4">Danger Zone</h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  Irreversible actions that affect your account
-                </p>
-                <button className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                  Delete Account
-                </button>
+                ))}
               </div>
             </div>
           )}

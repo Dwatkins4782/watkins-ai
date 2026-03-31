@@ -36,6 +36,11 @@ export const authApi = {
   register: (data: any) => api.post('/auth/register', data),
   login: (data: any) => api.post('/auth/login', data),
   me: () => api.get('/auth/me'),
+  forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (token: string, newPassword: string) => api.post('/auth/reset-password', { token, newPassword }),
+  verifyEmail: (token: string) => api.post('/auth/verify-email', { token }),
+  resendVerification: () => api.post('/auth/resend-verification'),
+  changePassword: (currentPassword: string, newPassword: string) => api.post('/auth/change-password', { currentPassword, newPassword }),
 }
 
 // Store API
@@ -58,6 +63,11 @@ export const emailApi = {
   createFlow: (storeId: string, data: any) => api.post(`/email/stores/${storeId}/flows`, data),
   getFlows: (storeId: string) => api.get(`/email/stores/${storeId}/flows`),
   activateFlow: (flowId: string) => api.put(`/email/flows/${flowId}/activate`),
+  pauseFlow: (flowId: string) => api.put(`/email/flows/${flowId}/pause`),
+  getFlow: (flowId: string) => api.get(`/email/flows/${flowId}`),
+  deleteFlow: (flowId: string) => api.delete(`/email/flows/${flowId}`),
+  createCampaign: (storeId: string, data: any) => api.post(`/email/stores/${storeId}/campaigns`, data),
+  getCampaigns: (storeId: string) => api.get(`/email/stores/${storeId}/campaigns`),
 }
 
 // Analytics API
@@ -87,10 +97,21 @@ export const dfyApi = {
   getProject: (projectId: string) => api.get(`/dfy/projects/${projectId}`),
 }
 
-// Optimization API
-export const optimizationApi = {
-  getOptimizedProducts: (storeId: string) => api.get(`/optimization/stores/${storeId}/optimized-products`),
-  optimizeProduct: (productId: string) => api.post(`/optimization/products/${productId}/optimize`),
+// User API
+export const userApi = {
+  getProfile: () => api.get('/users/me') as any,
+  updateProfile: (data: any) => api.put('/users/me', data),
+}
+
+// SMS API
+export const smsApi = {
+  createFlow: (storeId: string, data: any) => api.post(`/sms/stores/${storeId}/flows`, data),
+  getFlows: (storeId: string) => api.get(`/sms/stores/${storeId}/flows`),
+  getFlow: (flowId: string) => api.get(`/sms/flows/${flowId}`),
+  activateFlow: (flowId: string) => api.put(`/sms/flows/${flowId}/activate`),
+  pauseFlow: (flowId: string) => api.put(`/sms/flows/${flowId}/pause`),
+  deleteFlow: (flowId: string) => api.delete(`/sms/flows/${flowId}`),
+  send: (data: { to: string; message: string }) => api.post('/sms/send', data),
 }
 
 // Billing API
@@ -98,7 +119,24 @@ export const billingApi = {
   createCheckout: (plan: string) => api.post('/billing/checkout', { plan }),
   getSubscription: () => api.get('/billing/subscription'),
   getInvoices: () => api.get('/billing/invoices'),
-  cancelSubscription: () => api.post('/billing/subscription/cancel'),
+  cancelSubscription: () => api.post('/billing/cancel'),
+  updatePlan: (plan: string) => api.post('/billing/update-plan', { plan }),
+}
+
+// Dropshipping API
+export const dropshippingApi = {
+  getSuppliers: (filters?: { category?: string; niche?: string; region?: string }) =>
+    api.get('/dropshipping/suppliers', { params: filters }),
+  getSupplier: (supplierId: string) => api.get(`/dropshipping/suppliers/${supplierId}`),
+  seedSuppliers: () => api.post('/dropshipping/suppliers/seed'),
+  getRecommendations: (storeId: string) => api.get(`/dropshipping/stores/${storeId}/recommendations`),
+  getSetupPackages: () => api.get('/dropshipping/setup-packages'),
+  connectSupplier: (storeId: string, data: any) => api.post(`/dropshipping/stores/${storeId}/connect`, data),
+  getConnections: (storeId: string) => api.get(`/dropshipping/stores/${storeId}/connections`),
+  getConnection: (connectionId: string) => api.get(`/dropshipping/connections/${connectionId}`),
+  activateConnection: (connectionId: string) => api.put(`/dropshipping/connections/${connectionId}/activate`),
+  pauseConnection: (connectionId: string) => api.put(`/dropshipping/connections/${connectionId}/pause`),
+  disconnectConnection: (connectionId: string) => api.put(`/dropshipping/connections/${connectionId}/disconnect`),
 }
 
 // Simplified API exports
@@ -143,13 +181,25 @@ export default {
   getDFYProjects: () => dfyApi.getProjects().then(res => res.data),
   getDFYProject: (projectId: string) => dfyApi.getProject(projectId).then(res => res.data),
 
-  // Optimization
-  getOptimizedProducts: (storeId: string) => optimizationApi.getOptimizedProducts(storeId).then(res => res.data),
-  optimizeProduct: (productId: string) => optimizationApi.optimizeProduct(productId).then(res => res.data),
+  // User
+  getProfile: () => userApi.getProfile().then((res: any) => res.data),
+  updateProfile: (data: any) => userApi.updateProfile(data).then(res => res.data),
+
+  // SMS
+  createSmsFlow: (storeId: string, data: any) => smsApi.createFlow(storeId, data).then(res => res.data),
+  getSmsFlows: (storeId: string) => smsApi.getFlows(storeId).then(res => res.data),
+  getSmsFlow: (flowId: string) => smsApi.getFlow(flowId).then(res => res.data),
 
   // Billing
   createCheckout: (plan: string) => billingApi.createCheckout(plan).then(res => res.data),
   getSubscription: () => billingApi.getSubscription().then(res => res.data),
   getInvoices: () => billingApi.getInvoices().then(res => res.data),
   cancelSubscription: () => billingApi.cancelSubscription().then(res => res.data),
+  updatePlan: (plan: string) => billingApi.updatePlan(plan).then(res => res.data),
+
+  // Dropshipping
+  getDropshipSuppliers: (filters?: any) => dropshippingApi.getSuppliers(filters).then(res => res.data),
+  getDropshipRecommendations: (storeId: string) => dropshippingApi.getRecommendations(storeId).then(res => res.data),
+  connectDropshipSupplier: (storeId: string, data: any) => dropshippingApi.connectSupplier(storeId, data).then(res => res.data),
+  getDropshipConnections: (storeId: string) => dropshippingApi.getConnections(storeId).then(res => res.data),
 }

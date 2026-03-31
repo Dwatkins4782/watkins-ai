@@ -13,6 +13,11 @@ export class UserController {
     return this.userService.findAll(user.tenantId);
   }
 
+  @Get('me')
+  async getProfile(@CurrentUser() user: any) {
+    return this.userService.findById(user.id);
+  }
+
   @Get(':id')
   async getUser(@Param('id') id: string) {
     return this.userService.findById(id);

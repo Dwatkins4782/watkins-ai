@@ -186,6 +186,7 @@ model Store {
   crawlReports      CrawlReport[]
   auditReports      AuditReport[]
   insights          Insight[]
+  dropshipConnections DropshipConnection[]
 
   @@index([tenantId])
   @@index([platform])
@@ -750,6 +751,105 @@ enum DfyStatus {
   SETUP_MARKETING
   COMPLETED
   FAILED
+}
+
+// ==================== MODULE 9: DROPSHIPPING INTEGRATION ====================
+
+model DropshipSupplier {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  website         String?
+  apiEndpoint     String?
+  
+  // Categorization
+  categories      String[]   // e.g. ["fashion", "electronics", "home"]
+  niches          String[]   // e.g. ["pet supplies", "fitness", "beauty"]
+  regions         String[]   // e.g. ["US", "EU", "Global"]
+  
+  // Quality metrics
+  avgShippingDays   Int?
+  avgRating         Float?
+  productCount      Int?
+  minOrderValue     Float?
+  returnPolicy      String?  @db.Text
+  
+  // Integration capabilities
+  autoFulfillment   Boolean  @default(false)
+  inventorySync     Boolean  @default(false)
+  priceSync         Boolean  @default(false)
+  trackingSync      Boolean  @default(false)
+  
+  // Pricing
+  monthlyFee      Float?
+  transactionFee  Float?     // percentage
+  
+  logo            String?
+  description     String?  @db.Text
+  pros            String[]
+  cons            String[]
+  
+  featured        Boolean  @default(false)
+  status          String   @default("active")
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  connections     DropshipConnection[]
+
+  @@index([status])
+}
+
+model DropshipConnection {
+  id              String   @id @default(cuid())
+  storeId         String
+  store           Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  supplierId      String
+  supplier        DropshipSupplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  
+  status          DropshipConnectionStatus @default(PENDING)
+  setupType       DropshipSetupType @default(DIY)
+  
+  // Credentials
+  apiKey          String?
+  apiSecret       String?
+  
+  // Configuration
+  autoImportProducts  Boolean @default(false)
+  autoFulfillOrders   Boolean @default(false)
+  markupType          String? // "percentage", "fixed"
+  markupValue         Float?
+  
+  // Stats
+  productsImported    Int     @default(0)
+  ordersFulfilled     Int     @default(0)
+  totalRevenue        Float   @default(0)
+  
+  connectedAt     DateTime?
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([storeId, supplierId])
+  @@index([storeId])
+  @@index([supplierId])
+  @@index([status])
+}
+
+enum DropshipConnectionStatus {
+  PENDING
+  CONNECTING
+  ACTIVE
+  PAUSED
+  FAILED
+  DISCONNECTED
+}
+
+enum DropshipSetupType {
+  DIY
+  ASSISTED
+  FULL_AUTO
 }
 
 // ==================== SYSTEM & UTILITIES ====================

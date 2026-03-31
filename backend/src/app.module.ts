@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
 import configuration from './config/configuration';
@@ -20,6 +21,8 @@ import { BillingModule } from './billing/billing.module';
 import { DfyModule } from './dfy/dfy.module';
 import { AiModule } from './ai/ai.module';
 import { IntegrationModule } from './integration/integration.module';
+import { HealthModule } from './health/health.module';
+import { DropshippingModule } from './dropshipping/dropshipping.module';
 
 @Module({
   imports: [
@@ -81,9 +84,21 @@ import { IntegrationModule } from './integration/integration.module';
     // Module 8: DFY Builder
     DfyModule,
 
+    // Module 9: Dropshipping
+    DropshippingModule,
+
     // Integrations
     IntegrationModule,
+
+    // Health Check
+    HealthModule,
   ],
-  providers: [PrismaService],
+  providers: [
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

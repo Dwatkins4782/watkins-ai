@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
+import { toast } from 'sonner';
 
 export default function AnalyticsPage() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function AnalyticsPage() {
       console.error('Failed to load stores:', error);
       // If 401, user will be redirected by interceptor
       if (error.response?.status !== 401) {
-        alert('Failed to load stores. Please try refreshing the page.');
+        toast.error('Failed to load stores. Please try refreshing the page.');
       }
     } finally {
       setLoading(false);
@@ -67,11 +68,11 @@ export default function AnalyticsPage() {
     setGenerating(true);
     try {
       await api.generateInsights(selectedStore);
-      alert('AI Insights generated successfully!');
+      toast.success('AI Insights generated successfully!');
       loadDashboard();
     } catch (error) {
       console.error('Failed to generate insights:', error);
-      alert('Failed to generate insights. Please try again.');
+      toast.error('Failed to generate insights. Please try again.');
     } finally {
       setGenerating(false);
     }

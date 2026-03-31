@@ -1,9 +1,10 @@
 import { Controller, Get, Post, Param, UseGuards } from '@nestjs/common';
 import { RecommendationService } from './recommendation.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../common/guards/tenant.guard';
 
 @Controller('recommendations')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class RecommendationController {
   constructor(private recommendationService: RecommendationService) {}
 

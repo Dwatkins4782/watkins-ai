@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/lib/store';
-import api from '@/lib/api';
+import api, { emailApi } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface EmailFlow {
@@ -64,10 +64,13 @@ export default function EmailPage() {
     
     setLoading(true);
     try {
-      const flowsData = await api.getEmailFlows(selectedStoreId);
-      setFlows(flowsData);
+      // Load flows
+      const flowsRes = await emailApi.getFlows(selectedStoreId);
+      setFlows(flowsRes.data);
 
-      setCampaigns([]);
+      // Load campaigns
+      const campaignsRes = await emailApi.getCampaigns(selectedStoreId);
+      setCampaigns(campaignsRes.data);
     } catch (error) {
       console.error('Failed to load email data:', error);
       toast.error('Failed to load email data');
@@ -83,7 +86,7 @@ export default function EmailPage() {
         type: 'WELCOME',
         trigger: 'NEW_SUBSCRIBER',
       };
-      await api.createEmailFlow(selectedStoreId, flowData);
+      await emailApi.createFlow(selectedStoreId, flowData);
       toast.success('Email flow created');
       loadEmailData();
     } catch (error) {
@@ -94,7 +97,7 @@ export default function EmailPage() {
 
   const toggleFlow = async (flowId: string, isActive: boolean) => {
     try {
-      await api.activateEmailFlow(flowId);
+      await emailApi.activateFlow(flowId);
       toast.success(`Flow ${!isActive ? 'activated' : 'deactivated'}`);
       loadEmailData();
     } catch (error) {
@@ -110,7 +113,7 @@ export default function EmailPage() {
         subject: 'Check out our latest products!',
         template: 'default',
       };
-      toast.info('Campaign creation coming soon');
+      await emailApi.createCampaign(selectedStoreId, campaignData);
       toast.success('Campaign created');
       loadEmailData();
     } catch (error) {

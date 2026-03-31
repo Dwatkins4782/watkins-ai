@@ -1,9 +1,10 @@
-import { Controller, Post, Get, Put, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../common/guards/tenant.guard';
 
 @Controller('email')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class EmailController {
   constructor(private emailService: EmailService) {}
 
@@ -17,9 +18,24 @@ export class EmailController {
     return this.emailService.getFlows(storeId);
   }
 
+  @Get('flows/:flowId')
+  async getFlow(@Param('flowId') flowId: string) {
+    return this.emailService.getFlow(flowId);
+  }
+
   @Put('flows/:flowId/activate')
   async activateFlow(@Param('flowId') flowId: string) {
     return this.emailService.activateFlow(flowId);
+  }
+
+  @Put('flows/:flowId/pause')
+  async pauseFlow(@Param('flowId') flowId: string) {
+    return this.emailService.pauseFlow(flowId);
+  }
+
+  @Delete('flows/:flowId')
+  async deleteFlow(@Param('flowId') flowId: string) {
+    return this.emailService.deleteFlow(flowId);
   }
 
   @Post('stores/:storeId/campaigns')

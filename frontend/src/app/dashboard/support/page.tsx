@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/lib/store';
-import api from '@/lib/api';
+import apiHelpers, { api } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface Ticket {
@@ -47,7 +47,7 @@ export default function SupportPage() {
 
   const loadStores = async () => {
     try {
-      const data = await api.getStores();
+      const data = await apiHelpers.getStores();
       setStores(data);
       if (data.length > 0) {
         setSelectedStoreId(data[0].id);
@@ -65,8 +65,8 @@ export default function SupportPage() {
     
     setLoading(true);
     try {
-      const data = await api.getSupportTickets(selectedStoreId);
-      setTickets(data);
+      const res = await api.get(`/support/stores/${selectedStoreId}/tickets`);
+      setTickets(res.data);
     } catch (error) {
       console.error('Failed to load tickets:', error);
       toast.error('Failed to load support tickets');
@@ -78,7 +78,7 @@ export default function SupportPage() {
   const createTicket = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.createSupportTicket(selectedStoreId, newTicket);
+      await api.post(`/support/stores/${selectedStoreId}/tickets`, newTicket);  
       toast.success('Support ticket created');
       setShowCreateModal(false);
       setNewTicket({

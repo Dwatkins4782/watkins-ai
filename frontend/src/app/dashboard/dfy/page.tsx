@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
+import { toast } from 'sonner';
 
 export default function DFYPage() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -45,10 +46,10 @@ export default function DFYPage() {
         productCategories: '',
         brandDescription: '',
       });
-      alert('DFY Store Builder project created! AI is generating your complete store...');
+      toast.success('DFY Store Builder project created! AI is generating your complete store...');
       loadProjects();
     } catch (error: any) {
-      alert('Failed to create project: ' + (error.response?.data?.message || error.message));
+      toast.error(error.response?.data?.message || 'Failed to create project');
     }
   };
 
