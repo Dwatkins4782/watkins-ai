@@ -35,4 +35,5 @@ COPY package*.json ./
 
 EXPOSE 4000
 
-CMD ["npm", "run", "start:prod"]
+# Run migrations then start the server
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
