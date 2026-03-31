@@ -7,8 +7,8 @@ WORKDIR /app
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 
-# Install build dependencies for native modules (bcrypt)
-RUN apk add --no-cache python3 make g++
+# Install build deps + OpenSSL for Prisma
+RUN apk add --no-cache python3 make g++ openssl openssl-dev
 
 COPY package*.json ./
 COPY prisma ./prisma/
@@ -25,8 +25,8 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install runtime dependencies for bcrypt
-RUN apk add --no-cache libstdc++
+# OpenSSL for Prisma, libstdc++ for bcrypt
+RUN apk add --no-cache openssl libstdc++
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
