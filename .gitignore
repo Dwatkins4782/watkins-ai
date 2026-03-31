@@ -31,7 +31,6 @@ Thumbs.db
 # Database
 *.db
 *.sqlite
-prisma/migrations/
 
 # Docker
 docker-compose.override.yml
