@@ -62,7 +62,7 @@ const features = [
   {
     icon: Truck,
     name: 'AI Dropshipping Engine',
-    description: 'AI matches your store with top-tier suppliers based on your niche. Auto-setup or DIY -- from $0 to fully managed.',
+    description: 'Connect to vetted suppliers, auto-import winning products, sync inventory in real-time, and automate order fulfillment -- all AI-managed.',
     color: 'bg-violet-50 text-violet-600',
     isNew: true,
   },
