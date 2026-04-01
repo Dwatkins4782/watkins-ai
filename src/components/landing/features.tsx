@@ -7,6 +7,7 @@ import {
   Headphones,
   Wrench,
   Sparkles,
+  Truck,
 } from 'lucide-react'
 
 const features = [
@@ -58,6 +59,13 @@ const features = [
     description: 'Go from idea to launched store in 6-8 weeks. AI-powered branding, product curation, and complete setup.',
     color: 'bg-amber-50 text-amber-600',
   },
+  {
+    icon: Truck,
+    name: 'AI Dropshipping Engine',
+    description: 'AI matches your store with top-tier suppliers based on your niche. Auto-setup or DIY -- from $0 to fully managed.',
+    color: 'bg-violet-50 text-violet-600',
+    isNew: true,
+  },
 ]
 
 export default function Features() {
@@ -69,7 +77,7 @@ export default function Features() {
             Platform
           </span>
           <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-            8 powerful modules, one platform
+            9 powerful modules, one platform
           </h2>
           <p className="mt-4 text-lg text-gray-600 leading-relaxed">
             Everything you need to analyze, market, optimize, and grow your e-commerce business -- powered by GPT-4o.
@@ -82,6 +90,11 @@ export default function Features() {
               key={feature.name}
               className="group relative bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-lg hover:shadow-gray-100/80 hover:border-gray-200 transition-all duration-300"
             >
+              {'isNew' in feature && feature.isNew && (
+                <span className="absolute top-4 right-4 bg-violet-100 text-violet-700 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                  New
+                </span>
+              )}
               <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl ${feature.color}`}>
                 <feature.icon className="w-5 h-5" />
               </div>
