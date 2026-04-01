@@ -5,7 +5,7 @@ const plans = [
   {
     name: 'Free',
     price: 0,
-    description: 'Try Watkins AI with basic features',
+    description: 'Try EcomRevHub with basic features',
     features: [
       { name: '1 store', included: true },
       { name: '100 products', included: true },
@@ -123,7 +123,7 @@ export default function PricingPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Watkins AI</span>
+            <span className="text-xl font-bold">EcomRevHub</span>
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/auth/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -203,7 +203,7 @@ export default function PricingPage() {
               <h3 className="text-xl font-semibold">Enterprise</h3>
               <p className="text-muted-foreground mt-2">Custom AI models, dedicated infrastructure, SLA, and white-glove onboarding.</p>
               <Link
-                href="mailto:sales@watkinsai.com"
+                href="mailto:sales@ecomrevhub.com"
                 className="inline-flex items-center gap-2 mt-4 rounded-md border border-border px-6 py-2.5 text-sm font-medium hover:bg-accent transition-colors"
               >
                 Contact Sales
@@ -234,7 +234,7 @@ export default function PricingPage() {
         <div className="container mx-auto px-4 flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span>&copy; {new Date().getFullYear()} Watkins AI</span>
+            <span>&copy; {new Date().getFullYear()} EcomRevHub</span>
           </div>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>

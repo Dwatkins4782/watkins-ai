@@ -67,7 +67,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
       <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Watkins AI</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">EcomRevHub</h1>
           <p className="text-gray-600">E-commerce Growth Engine</p>
         </div>
 

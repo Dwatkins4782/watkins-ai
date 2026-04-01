@@ -7,7 +7,7 @@ import { Toaster } from 'sonner'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Watkins AI - E-commerce Growth Engine',
+  title: 'EcomRevHub - E-commerce Growth Engine',
   description: 'AI-powered platform that builds, runs, and grows e-commerce businesses automatically',
 }
 

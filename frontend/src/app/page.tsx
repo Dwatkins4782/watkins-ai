@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { 
   Sparkles, ShoppingCart, Mail, BarChart3, 
   MessageSquare, Wrench, Zap, Shield, 
-  ArrowRight, CheckCircle2, Star
+  ArrowRight, CheckCircle2, Star, Truck
 } from 'lucide-react'
 
 const features = [
@@ -36,6 +36,12 @@ const features = [
     title: 'Done-For-You Builder',
     description: 'Launch a complete e-commerce store with AI-generated branding, products, content, and marketing.',
   },
+  {
+    icon: Truck,
+    title: 'AI Dropshipping Engine',
+    description: 'Connect to vetted suppliers, auto-import winning products, sync inventory in real-time, and automate fulfillment.',
+    isNew: true,
+  },
 ]
 
 const plans = [
@@ -62,7 +68,7 @@ const plans = [
 
 const testimonials = [
   {
-    quote: 'Watkins AI increased our email revenue by 340% in the first month. The AI-generated flows convert better than anything we wrote ourselves.',
+    quote: 'EcomRevHub increased our email revenue by 340% in the first month. The AI-generated flows convert better than anything we wrote ourselves.',
     author: 'Sarah K.',
     role: 'Shopify Store Owner',
     stars: 5,
@@ -89,7 +95,7 @@ export default function HomePage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Watkins AI</span>
+            <span className="text-xl font-bold">EcomRevHub</span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
@@ -127,7 +133,7 @@ export default function HomePage() {
             <span className="text-primary">autopilot</span> with AI
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Watkins AI analyzes your e-commerce store, generates high-converting email and SMS flows,
+            EcomRevHub analyzes your e-commerce store, generates high-converting email and SMS flows,
             optimizes product pages, and delivers actionable profit insights — all automatically.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -179,7 +185,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold">Everything you need to grow</h2>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Six AI-powered modules working together to analyze, optimize, and scale your e-commerce business.
+              Seven AI-powered modules working together to analyze, optimize, and scale your e-commerce business.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -191,6 +197,9 @@ export default function HomePage() {
                 <div className="inline-flex items-center justify-center rounded-md bg-primary/10 p-2.5 mb-4">
                   <feature.icon className="h-5 w-5 text-primary" />
                 </div>
+                {'isNew' in feature && feature.isNew && (
+                  <span className="ml-2 inline-block bg-violet-100 text-violet-700 text-xs font-bold px-2 py-0.5 rounded-full uppercase">New</span>
+                )}
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
               </div>
@@ -344,7 +353,7 @@ export default function HomePage() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="h-5 w-5 text-primary" />
-                <span className="font-bold">Watkins AI</span>
+                <span className="font-bold">EcomRevHub</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 AI-powered e-commerce growth engine that builds, runs, and scales your online business.
@@ -368,12 +377,12 @@ export default function HomePage() {
             <div>
               <h4 className="font-semibold mb-3 text-sm">Support</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="mailto:support@watkinsai.com" className="hover:text-foreground transition-colors">support@watkinsai.com</a></li>
+                <li><a href="mailto:support@ecomrevhub.com" className="hover:text-foreground transition-colors">support@ecomrevhub.com</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-border/40 mt-8 pt-8 text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Watkins AI. All rights reserved.
+            &copy; {new Date().getFullYear()} EcomRevHub. All rights reserved.
           </div>
         </div>
       </footer>
