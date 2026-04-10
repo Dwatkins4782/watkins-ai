@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma.service';
@@ -11,7 +11,7 @@ export class CrawlerService {
 
   constructor(
     private prisma: PrismaService,
-    @InjectQueue('crawler') private crawlerQueue: Queue,
+    @Optional() @InjectQueue('crawler') private crawlerQueue?: Queue,
   ) {}
 
   async startCrawl(storeId: string) {
@@ -32,11 +32,15 @@ export class CrawlerService {
     });
 
     // Queue crawl job
-    await this.crawlerQueue.add('crawl-website', {
-      storeId,
-      reportId: report.id,
-      url: store.url,
-    });
+    if (this.crawlerQueue) {
+      await this.crawlerQueue.add('crawl-website', {
+        storeId,
+        reportId: report.id,
+        url: store.url,
+      });
+    } else {
+      this.logger.warn('Redis not available — crawl job not queued');
+    }
 
     return report;
   }
@@ -116,10 +120,14 @@ export class CrawlerService {
     }
 
     // Queue audit job
-    await this.crawlerQueue.add('audit-store', {
-      storeId,
-      reportType,
-    });
+    if (this.crawlerQueue) {
+      await this.crawlerQueue.add('audit-store', {
+        storeId,
+        reportType,
+      });
+    } else {
+      this.logger.warn('Redis not available — audit job not queued');
+    }
 
     return { message: 'Audit queued' };
   }

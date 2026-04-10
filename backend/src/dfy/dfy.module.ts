@@ -7,13 +7,19 @@ import { DfyProcessor } from './dfy.processor';
 import { PrismaService } from '../prisma.service';
 import { AiModule } from '../ai/ai.module';
 
+const redisEnabled = !!process.env.REDIS_HOST;
+
 @Module({
   imports: [
-    BullModule.registerQueue({ name: 'dfy' }),
+    ...(redisEnabled ? [BullModule.registerQueue({ name: 'dfy' })] : []),
     AiModule,
   ],
   controllers: [DfyController],
-  providers: [DfyService, DfyProcessor, PrismaService],
+  providers: [
+    DfyService,
+    ...(redisEnabled ? [DfyProcessor] : []),
+    PrismaService,
+  ],
   exports: [DfyService],
 })
 export class DfyModule {}

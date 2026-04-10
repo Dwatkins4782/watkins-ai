@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma.service';
@@ -9,7 +9,7 @@ export class DfyService {
   constructor(
     private prisma: PrismaService,
     private aiService: AiService,
-    @InjectQueue('dfy') private dfyQueue: Queue,
+    @Optional() @InjectQueue('dfy') private dfyQueue?: Queue,
   ) {}
 
   async createProject(tenantId: string, projectData: { projectName: string; niche: string }) {
@@ -23,7 +23,9 @@ export class DfyService {
     });
 
     // Queue DFY generation
-    await this.dfyQueue.add('generate-store', { projectId: project.id });
+    if (this.dfyQueue) {
+      await this.dfyQueue.add('generate-store', { projectId: project.id });
+    }
 
     return project;
   }

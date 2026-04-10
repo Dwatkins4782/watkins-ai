@@ -6,15 +6,19 @@ import { CrawlerProcessor } from './crawler.processor';
 import { PrismaService } from '../prisma.service';
 import { AiModule } from '../ai/ai.module';
 
+const redisEnabled = !!process.env.REDIS_HOST;
+
 @Module({
   imports: [
-    BullModule.registerQueue({
-      name: 'crawler',
-    }),
+    ...(redisEnabled ? [BullModule.registerQueue({ name: 'crawler' })] : []),
     AiModule,
   ],
   controllers: [CrawlerController],
-  providers: [CrawlerService, CrawlerProcessor, PrismaService],
+  providers: [
+    CrawlerService,
+    ...(redisEnabled ? [CrawlerProcessor] : []),
+    PrismaService,
+  ],
   exports: [CrawlerService],
 })
 export class CrawlerModule {}

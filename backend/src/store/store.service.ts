@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma.service';
@@ -8,7 +8,7 @@ import { CreateStoreDto, UpdateStoreDto } from './dto/store.dto';
 export class StoreService {
   constructor(
     private prisma: PrismaService,
-    @InjectQueue('store-sync') private storeSyncQueue: Queue,
+    @Optional() @InjectQueue('store-sync') private storeSyncQueue?: Queue,
   ) {}
 
   async create(tenantId: string, createStoreDto: CreateStoreDto) {
@@ -21,10 +21,12 @@ export class StoreService {
     });
 
     // Queue initial sync
-    await this.storeSyncQueue.add('sync-store', {
-      storeId: store.id,
-      fullSync: true,
-    });
+    if (this.storeSyncQueue) {
+      await this.storeSyncQueue.add('sync-store', {
+        storeId: store.id,
+        fullSync: true,
+      });
+    }
 
     return store;
   }
@@ -80,10 +82,12 @@ export class StoreService {
   }
 
   async syncStore(storeId: string) {
-    await this.storeSyncQueue.add('sync-store', {
-      storeId,
-      fullSync: false,
-    });
+    if (this.storeSyncQueue) {
+      await this.storeSyncQueue.add('sync-store', {
+        storeId,
+        fullSync: false,
+      });
+    }
 
     return { message: 'Store sync queued' };
   }

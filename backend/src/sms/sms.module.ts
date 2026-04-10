@@ -6,10 +6,12 @@ import { SmsController } from './sms.controller';
 import { PrismaService } from '../prisma.service';
 import { AiModule } from '../ai/ai.module';
 
+const redisEnabled = !!process.env.REDIS_HOST;
+
 @Module({
   imports: [
     AiModule,
-    BullModule.registerQueue({ name: 'sms' }),
+    ...(redisEnabled ? [BullModule.registerQueue({ name: 'sms' })] : []),
   ],
   controllers: [SmsController],
   providers: [SmsService, PrismaService],

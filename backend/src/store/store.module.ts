@@ -5,11 +5,11 @@ import { StoreController } from './store.controller';
 import { PrismaService } from '../prisma.service';
 import { IntegrationModule } from '../integration/integration.module';
 
+const redisEnabled = !!process.env.REDIS_HOST;
+
 @Module({
   imports: [
-    BullModule.registerQueue({
-      name: 'store-sync',
-    }),
+    ...(redisEnabled ? [BullModule.registerQueue({ name: 'store-sync' })] : []),
     IntegrationModule,
   ],
   controllers: [StoreController],

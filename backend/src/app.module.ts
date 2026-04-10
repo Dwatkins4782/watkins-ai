@@ -41,14 +41,19 @@ import { DropshippingModule } from './dropshipping/dropshipping.module';
     // Scheduling
     ScheduleModule.forRoot(),
 
-    // Bull Queue
-    BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD,
-      },
-    }),
+    // Bull Queue (Redis) — only when REDIS_HOST is set
+    ...(process.env.REDIS_HOST
+      ? [
+          BullModule.forRoot({
+            connection: {
+              host: process.env.REDIS_HOST,
+              port: parseInt(process.env.REDIS_PORT || '6379'),
+              password: process.env.REDIS_PASSWORD,
+              maxRetriesPerRequest: null,
+            },
+          }),
+        ]
+      : []),
 
     // Core Modules
     AuthModule,

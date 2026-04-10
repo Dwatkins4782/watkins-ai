@@ -7,13 +7,19 @@ import { EmailProcessor } from './email.processor';
 import { PrismaService } from '../prisma.service';
 import { AiModule } from '../ai/ai.module';
 
+const redisEnabled = !!process.env.REDIS_HOST;
+
 @Module({
   imports: [
-    BullModule.registerQueue({ name: 'email' }),
+    ...(redisEnabled ? [BullModule.registerQueue({ name: 'email' })] : []),
     AiModule,
   ],
   controllers: [EmailController],
-  providers: [EmailService, EmailProcessor, PrismaService],
+  providers: [
+    EmailService,
+    ...(redisEnabled ? [EmailProcessor] : []),
+    PrismaService,
+  ],
   exports: [EmailService],
 })
 export class EmailModule {}

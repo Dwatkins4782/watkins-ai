@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
@@ -14,7 +14,7 @@ export class EmailService {
     private prisma: PrismaService,
     private aiService: AiService,
     private configService: ConfigService,
-    @InjectQueue('email') private emailQueue: Queue,
+    @Optional() @InjectQueue('email') private emailQueue?: Queue,
   ) {
     const apiKey = this.configService.get('sendgrid.apiKey');
     if (apiKey) {
@@ -85,7 +85,11 @@ export class EmailService {
   }
 
   async queueEmail(to: string, subject: string, html: string) {
-    await this.emailQueue.add('send-email', { to, subject, html });
+    if (this.emailQueue) {
+      await this.emailQueue.add('send-email', { to, subject, html });
+    } else {
+      this.logger.warn('Redis not available — email not queued');
+    }
   }
 
   async sendEmail(to: string, subject: string, html: string) {

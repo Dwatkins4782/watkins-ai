@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -16,7 +16,7 @@ export class SmsService {
     private prisma: PrismaService,
     private aiService: AiService,
     private configService: ConfigService,
-    @InjectQueue('sms') private smsQueue: Queue,
+    @Optional() @InjectQueue('sms') private smsQueue?: Queue,
   ) {
     const accountSid = this.configService.get<string>('TWILIO_ACCOUNT_SID');
     const authToken = this.configService.get<string>('TWILIO_AUTH_TOKEN');
@@ -96,7 +96,11 @@ export class SmsService {
   }
 
   async queueSms(to: string, body: string, flowId?: string) {
-    await this.smsQueue.add('send-sms', { to, body, flowId });
+    if (this.smsQueue) {
+      await this.smsQueue.add('send-sms', { to, body, flowId });
+    } else {
+      this.logger.warn('Redis not available — SMS not queued');
+    }
     return { queued: true };
   }
 }
