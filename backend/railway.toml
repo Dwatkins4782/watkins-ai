@@ -3,6 +3,6 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "echo '=== START ===' && ls -la dist/main.js && npx prisma migrate deploy && echo '=== LAUNCHING NODE ===' && node dist/main 2>&1"
+startCommand = "node -e \"console.log('FILE_SIZE:', require('fs').statSync('dist/main.js').size); console.log('CONTENT:', require('fs').readFileSync('dist/main.js','utf8').substring(0,1000))\" ; sleep 60"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
