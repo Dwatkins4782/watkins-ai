@@ -30,6 +30,8 @@ WORKDIR /app
 # OpenSSL for Prisma, libstdc++ for bcrypt
 RUN apk add --no-cache openssl libstdc++
 
+# Cache bust: changing this value forces fresh COPY from builder
+ARG CACHEBUST_PROD=2
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
