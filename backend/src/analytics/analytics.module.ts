@@ -2,13 +2,12 @@
 import { Module } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { AnalyticsController } from './analytics.controller';
-import { PrismaService } from '../prisma.service';
 import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [AiModule],
   controllers: [AnalyticsController],
-  providers: [AnalyticsService, PrismaService],
+  providers: [AnalyticsService],
   exports: [AnalyticsService],
 })
 export class AnalyticsModule {}

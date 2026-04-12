@@ -5,7 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
 import configuration from './config/configuration';
-import { PrismaService } from './prisma.service';
+import { PrismaModule } from './prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { TenantModule } from './tenant/tenant.module';
 import { StoreModule } from './store/store.module';
@@ -97,9 +97,11 @@ import { DropshippingModule } from './dropshipping/dropshipping.module';
 
     // Health Check
     HealthModule,
+
+    // Database (global singleton)
+    PrismaModule,
   ],
   providers: [
-    PrismaService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

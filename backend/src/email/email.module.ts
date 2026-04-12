@@ -4,7 +4,6 @@ import { BullModule } from '@nestjs/bullmq';
 import { EmailService } from './email.service';
 import { EmailController } from './email.controller';
 import { EmailProcessor } from './email.processor';
-import { PrismaService } from '../prisma.service';
 import { AiModule } from '../ai/ai.module';
 
 const redisEnabled = !!process.env.REDIS_HOST;
@@ -18,7 +17,6 @@ const redisEnabled = !!process.env.REDIS_HOST;
   providers: [
     EmailService,
     ...(redisEnabled ? [EmailProcessor] : []),
-    PrismaService,
   ],
   exports: [EmailService],
 })
