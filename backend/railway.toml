@@ -3,6 +3,6 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "node -e \"const f=require('fs').readFileSync('dist/main.js','utf8'); console.log('LAST_500:', f.substring(f.length-500)); console.log('TOTAL_LENGTH:', f.length)\" ; sleep 60"
+startCommand = "node -e \"process.stdout.write('RUNNING\\n'); try { require('./dist/main'); } catch(e) { process.stderr.write('CRASH: ' + e.stack + '\\n'); process.exit(1); }\" 2>&1 ; echo EXIT=$? ; sleep 120"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
