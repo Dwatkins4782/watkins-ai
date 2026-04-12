@@ -6,7 +6,7 @@ import { useAuthStore } from '@/lib/store'
 import Link from 'next/link'
 import {
   Home, Store, Mail, MessageSquare, BarChart3, Lightbulb,
-  Wrench, CreditCard, Sparkles, Settings, LogOut
+  Wrench, CreditCard, Sparkles, Settings, LogOut, Truck
 } from 'lucide-react'
 
 export default function DashboardLayout({
@@ -40,6 +40,7 @@ export default function DashboardLayout({
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Recommendations', href: '/dashboard/recommendations', icon: Lightbulb },
     { name: 'Optimization', href: '/dashboard/optimization', icon: Wrench },
+    { name: 'Dropshipping', href: '/dashboard/dropshipping', icon: Truck },
     { name: 'DFY Builder', href: '/dashboard/dfy', icon: Sparkles },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
@@ -52,7 +53,7 @@ export default function DashboardLayout({
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-purple-600">Watkins AI</h1>
+            <h1 className="text-2xl font-bold text-purple-600">EcomRevHub</h1>
             <p className="text-sm text-gray-600 mt-1">{user?.tenant?.name}</p>
           </div>
 

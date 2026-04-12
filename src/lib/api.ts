@@ -93,6 +93,21 @@ export const optimizationApi = {
   optimizeProduct: (productId: string) => api.post(`/optimization/products/${productId}/optimize`),
 }
 
+// Dropshipping API
+export const dropshippingApi = {
+  getSuppliers: (params?: { category?: string; niche?: string; region?: string }) =>
+    api.get('/dropshipping/suppliers', { params }),
+  getSupplier: (supplierId: string) => api.get(`/dropshipping/suppliers/${supplierId}`),
+  getRecommended: (storeId: string) => api.get(`/dropshipping/stores/${storeId}/recommendations`),
+  getSetupPackages: () => api.get('/dropshipping/setup-packages'),
+  connectSupplier: (storeId: string, data: any) => api.post(`/dropshipping/stores/${storeId}/connect`, data),
+  getConnections: (storeId: string) => api.get(`/dropshipping/stores/${storeId}/connections`),
+  getConnection: (connectionId: string) => api.get(`/dropshipping/connections/${connectionId}`),
+  activateConnection: (connectionId: string) => api.put(`/dropshipping/connections/${connectionId}/activate`),
+  pauseConnection: (connectionId: string) => api.put(`/dropshipping/connections/${connectionId}/pause`),
+  disconnectConnection: (connectionId: string) => api.put(`/dropshipping/connections/${connectionId}/disconnect`),
+}
+
 // Billing API
 export const billingApi = {
   createCheckout: (plan: string) => api.post('/billing/checkout', { plan }),
@@ -152,4 +167,15 @@ export default {
   getSubscription: () => billingApi.getSubscription().then(res => res.data),
   getInvoices: () => billingApi.getInvoices().then(res => res.data),
   cancelSubscription: () => billingApi.cancelSubscription().then(res => res.data),
+
+  // Dropshipping
+  getSuppliers: (params?: any) => dropshippingApi.getSuppliers(params).then(res => res.data),
+  getSupplier: (id: string) => dropshippingApi.getSupplier(id).then(res => res.data),
+  getRecommendedSuppliers: (storeId: string) => dropshippingApi.getRecommended(storeId).then(res => res.data),
+  getSetupPackages: () => dropshippingApi.getSetupPackages().then(res => res.data),
+  connectSupplier: (storeId: string, data: any) => dropshippingApi.connectSupplier(storeId, data).then(res => res.data),
+  getDropshippingConnections: (storeId: string) => dropshippingApi.getConnections(storeId).then(res => res.data),
+  activateDropshippingConnection: (id: string) => dropshippingApi.activateConnection(id).then(res => res.data),
+  pauseDropshippingConnection: (id: string) => dropshippingApi.pauseConnection(id).then(res => res.data),
+  disconnectDropshippingConnection: (id: string) => dropshippingApi.disconnectConnection(id).then(res => res.data),
 }

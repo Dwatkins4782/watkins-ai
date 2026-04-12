@@ -40,13 +40,15 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   // Validate critical env vars in production
-  if (configService.get('NODE_ENV') === 'production') {
+  if (process.env.NODE_ENV === 'production') {
     const jwtSecret = configService.get('jwt.secret');
     if (!jwtSecret || jwtSecret === 'your-secret-key-change-in-production' || jwtSecret === 'change-me-in-production-use-a-strong-random-string') {
-      throw new Error('JWT_SECRET must be set to a strong value in production');
+      console.error('FATAL: JWT_SECRET must be set to a strong value in production');
+      process.exit(1);
     }
     if (!configService.get('database.url')) {
-      throw new Error('DATABASE_URL must be set in production');
+      console.error('FATAL: DATABASE_URL must be set in production');
+      process.exit(1);
     }
   }
 
@@ -58,4 +60,7 @@ async function bootstrap() {
   console.log(`❤️  Health: http://localhost:${port}/api/v1/health`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('❌ Bootstrap failed:', err);
+  process.exit(1);
+});
