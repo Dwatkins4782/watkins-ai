@@ -3,6 +3,6 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npx prisma migrate deploy && node dist/main"
+startCommand = "npx prisma migrate deploy && node -e \"try{require('./dist/main')}catch(e){console.error('CRASH:',e.message,e.stack);process.exit(1)}\" 2>&1 ; sleep 120"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
