@@ -1,8 +1,14 @@
 [build]
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+builder = "NIXPACKS"
+buildCommand = "npm ci && npx prisma generate && npm run build"
+
+[build.env]
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+PUPPETEER_SKIP_DOWNLOAD = "true"
 
 [deploy]
-startCommand = "node -e \"console.log('HELLO'); console.log(require('fs').readdirSync('dist').join(',')); console.log('DONE')\" ; sleep 300"
+startCommand = "npx prisma migrate deploy && node dist/main"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 120
