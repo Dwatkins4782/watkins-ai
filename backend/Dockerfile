@@ -17,12 +17,8 @@ RUN npm ci --no-audit --no-fund
 
 COPY . .
 
-# Cache bust to force fresh build
-ARG CACHEBUST=1
-
 RUN npx prisma generate
 RUN npm run build
-RUN echo "=== dist contents ===" && ls -la dist/
 
 # Production stage
 FROM node:18-alpine
@@ -40,4 +36,4 @@ COPY package*.json ./
 EXPOSE 4000
 
 # Run migrations then start the server
-CMD ["sh", "-c", "echo '=== Starting app ===' && npx prisma migrate deploy && echo '=== Prisma done, launching node ===' && node dist/main 2>&1; echo \"=== Node exited with code $? ===\""]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]

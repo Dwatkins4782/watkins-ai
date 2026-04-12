@@ -3,6 +3,6 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "find /app -maxdepth 2 -type f -name '*.js' | head -20 && sleep 60"
+startCommand = "npx prisma migrate deploy && node dist/main"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
