@@ -19,6 +19,8 @@ COPY . .
 
 RUN npx prisma generate
 RUN npm run build
+# Verify build output exists
+RUN echo "=== BUILD OUTPUT ===" && ls -la dist/main.js && echo "=== DIST DIRS ===" && ls dist/
 
 # Production stage
 FROM node:18-alpine
@@ -32,6 +34,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY package*.json ./
+
+# Verify copy worked in production stage
+RUN echo "=== PROD STAGE DIST ===" && ls -la dist/main.js
 
 EXPOSE 4000
 

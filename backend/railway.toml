@@ -3,6 +3,6 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "echo '=== STEP1: check dist ===' && ls -la dist/main.js && echo '=== STEP2: prisma migrate ===' && npx prisma migrate deploy 2>&1 && echo '=== STEP3: starting node ===' && node dist/main 2>&1; echo '=== NODE EXIT CODE: '$?' ==='"
+startCommand = "echo '=== LISTING DIST ===' && find dist -name '*.js' -type f | head -20 && MAIN=$(find dist -name main.js -type f | head -1) && echo FOUND=$MAIN && echo '=== PRISMA MIGRATE ===' && npx prisma migrate deploy 2>&1 && echo '=== STARTING NODE ===' && node $MAIN 2>&1; echo EXIT_CODE=$?"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
