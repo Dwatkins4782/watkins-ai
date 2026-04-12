@@ -1,3 +1,5 @@
+console.log('=== main.ts loaded ===', new Date().toISOString());
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -7,6 +9,7 @@ import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
+  console.log('=== bootstrap() starting ===');
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
     rawBody: true,
@@ -52,12 +55,13 @@ async function bootstrap() {
     }
   }
 
-  const port = configService.get('PORT') || 4000;
-  await app.listen(port);
+  const port = process.env.PORT || configService.get('port') || 4000;
+  console.log(`=== Binding to 0.0.0.0:${port} ===`);
+  await app.listen(port, '0.0.0.0');
 
-  console.log(`🚀 Watkins AI Backend running on: http://localhost:${port}`);
-  console.log(`📊 API: http://localhost:${port}/api/v1`);
-  console.log(`❤️  Health: http://localhost:${port}/api/v1/health`);
+  console.log(`🚀 Watkins AI Backend running on port ${port}`);
+  console.log(`📊 API: /api/v1`);
+  console.log(`❤️  Health: /api/v1/health`);
 }
 
 bootstrap().catch((err) => {
