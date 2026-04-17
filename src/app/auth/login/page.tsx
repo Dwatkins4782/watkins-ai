@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useAuthStore } from "@/lib/store";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -14,7 +15,7 @@ export default function LoginPage() {
       const res = await fetch(`${apiUrl}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Invalid credentials");
-      if (data.token) localStorage.setItem("token", data.token);
+      if (data.token && data.user) useAuthStore.getState().login(data.token, data.user);
       window.location.href = "/dashboard";
     } catch (err: unknown) { setError(err instanceof Error ? err.message : "Something went wrong"); } finally { setLoading(false); }
   };
