@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CookieConsent } from "@/components/CookieConsent";
 
 export const metadata: Metadata = {
   title: "EcomRevHub — AI-Powered E-Commerce Growth Engine",
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="noise-overlay">
         {children}
+        <CookieConsent />
       </body>
     </html>
   );

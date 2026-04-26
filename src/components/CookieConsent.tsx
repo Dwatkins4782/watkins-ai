@@ -33,7 +33,7 @@ export function CookieConsent() {
     <div style={{ position: "fixed" as const, bottom: 0, left: 0, right: 0, zIndex: 9999, padding: "16px 20px" }}>
       <div style={{ maxWidth: 600, margin: "0 auto", background: "rgba(18,18,22,0.97)", backdropFilter: "blur(24px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "20px 24px", boxShadow: "0 -8px 40px rgba(0,0,0,0.4)", fontFamily: "'Sora', sans-serif" }}>
         <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 16 }}>
-          <span style={{ fontSize: 20, flexShrink: 0 }}>ðª</span>
+          <span style={{ fontSize: 20, flexShrink: 0 }}>🍪</span>
           <div>
             <p style={{ fontSize: 14, fontWeight: 600, color: "#fafafa", marginBottom: 4 }}>We use cookies</p>
             <p style={{ fontSize: 13, color: "rgba(161,161,170,0.9)", lineHeight: 1.6 }}>
