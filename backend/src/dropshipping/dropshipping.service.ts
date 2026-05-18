@@ -230,6 +230,8 @@ export class DropshippingService {
     private prisma: PrismaService,
     private aiService: AiService,
     private configService: ConfigService,
+    private encryption: EncryptionService, // AUDIT #14
+    @Inject(CACHE_MANAGER) private cacheManager: Cache, // AUDIT #6
   ) {}
 
   /**

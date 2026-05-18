@@ -22,6 +22,25 @@ export class EmailService {
     }
   }
 
+  // AUDIT #16 + #26: tenant ownership assertions for store/flow scoping
+  private async assertTenantOwnsStore(tenantId: string, storeId: string): Promise<void> {
+    const { NotFoundException } = await import('@nestjs/common');
+    const store = await this.prisma.store.findFirst({
+      where: { id: storeId, tenantId },
+      select: { id: true },
+    });
+    if (!store) throw new NotFoundException('Store not found');
+  }
+
+  private async assertTenantOwnsFlow(tenantId: string, flowId: string): Promise<void> {
+    const { NotFoundException } = await import('@nestjs/common');
+    const flow = await this.prisma.emailFlow.findFirst({
+      where: { id: flowId, store: { tenantId } },
+      select: { id: true },
+    });
+    if (!flow) throw new NotFoundException('Flow not found');
+  }
+
   async createFlow(tenantId: string, storeId: string, flowData: any /* CreateEmailFlowDto validated by controller */) {
     await this.assertTenantOwnsStore(tenantId, storeId);
     const store = await this.prisma.store.findUnique({ where: { id: storeId } });

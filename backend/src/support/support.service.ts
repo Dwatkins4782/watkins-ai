@@ -1,8 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { AiService } from '../ai/ai.service';
-
-import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class SupportService {
