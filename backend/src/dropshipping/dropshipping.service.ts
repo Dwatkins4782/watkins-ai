@@ -2,6 +2,10 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from '@nes
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma.service';
 import { AiService } from '../ai/ai.service';
+import { EncryptionService } from '../common/services/encryption.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
+import { Inject } from '@nestjs/common';
 
 // Supplier catalog — curated list of top dropshipping companies by niche
 const SUPPLIER_CATALOG = [
@@ -231,34 +235,45 @@ export class DropshippingService {
   /**
    * Seed the supplier catalog into the database (idempotent)
    */
+  // AUDIT #5: parallel upserts (was sequential, ~50x slower)
   async seedSuppliers() {
-    for (const supplier of SUPPLIER_CATALOG) {
-      await this.prisma.dropshipSupplier.upsert({
-        where: { slug: supplier.slug },
-        update: {
-          name: supplier.name,
-          website: supplier.website,
-          categories: supplier.categories,
-          niches: supplier.niches,
-          regions: supplier.regions,
-          avgShippingDays: supplier.avgShippingDays,
-          avgRating: supplier.avgRating,
-          productCount: supplier.productCount,
-          autoFulfillment: supplier.autoFulfillment,
-          inventorySync: supplier.inventorySync,
-          priceSync: supplier.priceSync,
-          trackingSync: supplier.trackingSync,
-          monthlyFee: supplier.monthlyFee,
-          transactionFee: supplier.transactionFee,
-          description: supplier.description,
-          pros: supplier.pros,
-          cons: supplier.cons,
-          featured: supplier.featured,
-        },
-        create: supplier,
-      });
+    const CONCURRENCY = 10; // throttle to respect DB connection pool
+    const batches: typeof SUPPLIER_CATALOG[] = [];
+    for (let i = 0; i < SUPPLIER_CATALOG.length; i += CONCURRENCY) {
+      batches.push(SUPPLIER_CATALOG.slice(i, i + CONCURRENCY));
     }
-
+    for (const batch of batches) {
+      await Promise.all(
+        batch.map((supplier) =>
+          this.prisma.dropshipSupplier.upsert({
+            where: { slug: supplier.slug },
+            update: {
+              name: supplier.name,
+              website: supplier.website,
+              categories: supplier.categories,
+              niches: supplier.niches,
+              regions: supplier.regions,
+              avgShippingDays: supplier.avgShippingDays,
+              avgRating: supplier.avgRating,
+              productCount: supplier.productCount,
+              autoFulfillment: supplier.autoFulfillment,
+              inventorySync: supplier.inventorySync,
+              priceSync: supplier.priceSync,
+              trackingSync: supplier.trackingSync,
+              monthlyFee: supplier.monthlyFee,
+              transactionFee: supplier.transactionFee,
+              description: supplier.description,
+              pros: supplier.pros,
+              cons: supplier.cons,
+              featured: supplier.featured,
+            },
+            create: supplier,
+          })
+        )
+      );
+    }
+    // AUDIT #6: bust cache after seed
+    await this.cacheManager.del('suppliers:all');
     this.logger.log(`Seeded ${SUPPLIER_CATALOG.length} dropship suppliers`);
     return { seeded: SUPPLIER_CATALOG.length };
   }
@@ -266,23 +281,23 @@ export class DropshippingService {
   /**
    * Get all available suppliers, optionally filtered
    */
+  // AUDIT #6: 5min cache. Read-heavy + supplier catalog rarely changes.
   async getSuppliers(filters?: { category?: string; niche?: string; region?: string }) {
-    const where: any = { status: 'active' };
+    const cacheKey = `suppliers:${JSON.stringify(filters ?? {})}`;
+    const cached = await this.cacheManager.get<any>(cacheKey);
+    if (cached) return cached;
 
-    if (filters?.category) {
-      where.categories = { has: filters.category };
-    }
-    if (filters?.niche) {
-      where.niches = { has: filters.niche };
-    }
-    if (filters?.region) {
-      where.regions = { has: filters.region };
-    }
+    const where: Record<string, unknown> = { status: 'active' };
+    if (filters?.category) where.categories = { has: filters.category };
+    if (filters?.niche) where.niches = { has: filters.niche };
+    if (filters?.region) where.regions = { has: filters.region };
 
-    return this.prisma.dropshipSupplier.findMany({
+    const data = await this.prisma.dropshipSupplier.findMany({
       where,
       orderBy: [{ featured: 'desc' }, { avgRating: 'desc' }],
     });
+    await this.cacheManager.set(cacheKey, data, 300_000); // 5 min
+    return data;
   }
 
   /**
@@ -472,8 +487,9 @@ Only return valid JSON, nothing else.`;
       update: {
         status: data.setupType === 'FULL_AUTO' ? 'CONNECTING' : 'PENDING',
         setupType: data.setupType,
-        apiKey: data.apiKey,
-        apiSecret: data.apiSecret,
+        // AUDIT #14: encrypt at rest
+        apiKey: this.encryption.encrypt(data.apiKey),
+        apiSecret: this.encryption.encrypt(data.apiSecret),
         markupType: data.markupType,
         markupValue: data.markupValue,
         autoImportProducts: data.autoImportProducts ?? false,
@@ -484,8 +500,9 @@ Only return valid JSON, nothing else.`;
         supplierId: data.supplierId,
         status: data.setupType === 'FULL_AUTO' ? 'CONNECTING' : 'PENDING',
         setupType: data.setupType,
-        apiKey: data.apiKey,
-        apiSecret: data.apiSecret,
+        // AUDIT #14: encrypt at rest
+        apiKey: this.encryption.encrypt(data.apiKey),
+        apiSecret: this.encryption.encrypt(data.apiSecret),
         markupType: data.markupType,
         markupValue: data.markupValue,
         autoImportProducts: data.autoImportProducts ?? false,

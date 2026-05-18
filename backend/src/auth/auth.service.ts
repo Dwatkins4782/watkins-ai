@@ -147,8 +147,10 @@ export class AuthService {
     const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
     const resetUrl = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
 
-    this.logger.log(`Password reset requested for ${email}`);
-    this.logger.log(`Reset URL (dev): ${resetUrl}`);
+    // AUDIT #15: never log reset URLs (tokens) in any environment
+    if (process.env.NODE_ENV !== 'production') {
+      this.logger.debug(`Password reset requested for email: ${email.replace(/(.{2}).+(@.+)/, '$1***$2')}`);
+    }
 
     try {
       await this.emailService.sendEmail(
@@ -157,7 +159,7 @@ export class AuthService {
         `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;"><h2>Reset Your Password</h2><p>Click the link below to reset your password. This link expires in 1 hour.</p><a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: #7c3aed; color: white; border-radius: 8px; text-decoration: none;">Reset Password</a><p style="margin-top: 16px; color: #666;">If you didn't request this, you can safely ignore this email.</p></div>`,
       );
     } catch (err) {
-      this.logger.warn('Failed to send reset email, URL logged above for dev use');
+      this.logger.warn('Failed to send password reset email');
     }
 
     return { message: 'If an account exists, a reset link has been sent' };
@@ -204,8 +206,10 @@ export class AuthService {
     const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
     const verifyUrl = `${frontendUrl}/auth/verify-email?token=${verifyToken}`;
 
-    this.logger.log(`Verification email requested for ${user.email}`);
-    this.logger.log(`Verify URL (dev): ${verifyUrl}`);
+    // AUDIT #15: never log verify URLs (tokens) in any environment
+    if (process.env.NODE_ENV !== 'production') {
+      this.logger.debug(`Verification email requested for user ${user.id}`);
+    }
 
     try {
       await this.emailService.sendEmail(
@@ -214,7 +218,7 @@ export class AuthService {
         `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;"><h2>Verify Your Email</h2><p>Click below to verify your email address. This link expires in 24 hours.</p><a href="${verifyUrl}" style="display: inline-block; padding: 12px 24px; background: #7c3aed; color: white; border-radius: 8px; text-decoration: none;">Verify Email</a></div>`,
       );
     } catch (err) {
-      this.logger.warn('Failed to send verification email, URL logged above for dev use');
+      this.logger.warn('Failed to send verification email');
     }
 
     return { message: 'Verification email sent' };

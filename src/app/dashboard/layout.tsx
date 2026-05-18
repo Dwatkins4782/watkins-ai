@@ -28,8 +28,31 @@ export default function DashboardLayout({
     router.push('/auth/login')
   }
 
+  // AUDIT #18: friendly loading state instead of blank screen
+  // (Middleware already redirects unauth users before this renders, but keep client guard as fallback)
   if (!isAuthenticated) {
-    return null
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-primary, #0a0a0f)',
+        flexDirection: 'column',
+        gap: 16,
+      }}>
+        <div style={{
+          width: 32,
+          height: 32,
+          border: '2px solid rgba(99, 102, 241, 0.3)',
+          borderTopColor: '#6366f1',
+          borderRadius: '50%',
+          animation: 'ecrh-spin 0.8s linear infinite',
+        }} />
+        <p style={{ fontSize: 14, color: 'rgba(161, 161, 170, 0.9)' }}>Redirecting to login...</p>
+        <style>{`@keyframes ecrh-spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    )
   }
 
   const navigation = [

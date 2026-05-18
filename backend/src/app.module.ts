@@ -23,6 +23,7 @@ import { AiModule } from './ai/ai.module';
 import { IntegrationModule } from './integration/integration.module';
 import { HealthModule } from './health/health.module';
 import { DropshippingModule } from './dropshipping/dropshipping.module';
+import { EncryptionModule } from './common/services/encryption.module'; // AUDIT #14
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { DropshippingModule } from './dropshipping/dropshipping.module';
 
     // Module 9: Dropshipping
     DropshippingModule,
+    EncryptionModule, // AUDIT #14
 
     // Integrations
     IntegrationModule,

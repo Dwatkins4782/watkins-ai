@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { AiService } from '../ai/ai.service';
 
+import { NotFoundException } from '@nestjs/common';
+
 @Injectable()
 export class SupportService {
   constructor(
@@ -9,7 +11,25 @@ export class SupportService {
     private aiService: AiService,
   ) {}
 
-  async createTicket(storeId: string, ticketData: any) {
+  // AUDIT #16: every per-store and per-ticket call must verify tenant ownership
+  private async assertTenantOwnsStore(tenantId: string, storeId: string) {
+    const store = await this.prisma.store.findFirst({
+      where: { id: storeId, tenantId },
+      select: { id: true },
+    });
+    if (!store) throw new NotFoundException('Store not found');
+  }
+
+  private async assertTenantOwnsTicket(tenantId: string, ticketId: string) {
+    const ticket = await this.prisma.supportTicket.findFirst({
+      where: { id: ticketId, store: { tenantId } },
+      select: { id: true },
+    });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+  }
+
+  async createTicket(tenantId: string, storeId: string, ticketData: any) {
+    await this.assertTenantOwnsStore(tenantId, storeId);
     const ticketNumber = `TKT-${Date.now()}`;
 
     const ticket = await this.prisma.supportTicket.create({
@@ -64,7 +84,8 @@ export class SupportService {
     return ticket;
   }
 
-  async getTickets(storeId: string) {
+  async getTickets(tenantId: string, storeId: string) {
+    await this.assertTenantOwnsStore(tenantId, storeId);
     return this.prisma.supportTicket.findMany({
       where: { storeId },
       include: { messages: true, customer: true },
@@ -72,7 +93,8 @@ export class SupportService {
     });
   }
 
-  async getTicket(ticketId: string) {
+  async getTicket(tenantId: string, ticketId: string) {
+    await this.assertTenantOwnsTicket(tenantId, ticketId);
     return this.prisma.supportTicket.findUnique({
       where: { id: ticketId },
       include: { messages: { orderBy: { createdAt: 'asc' } }, customer: true },

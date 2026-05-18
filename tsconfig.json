@@ -45,6 +45,8 @@
     "playwright.config.ts",
     "e2e",
     "jest.config.js",
-    "jest.setup.js"
+    "jest.setup.js",
+    ".next",
+    "dist"
   ]
 }

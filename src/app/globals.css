@@ -395,3 +395,25 @@ body {
     font-size: 14px;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   AUDIT #17: WCAG 2.1 SC 2.4.7 — visible focus indicator on all
+   interactive elements. Replaces outline:none with a high-contrast
+   ring on keyboard focus only (focus-visible).
+   ═══════════════════════════════════════════════════════════════ */
+:where(input, textarea, select, button, a, [tabindex]):focus-visible {
+  outline: 2px solid #818cf8 !important;
+  outline-offset: 2px !important;
+  border-radius: 6px;
+}
+
+/* Honor reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

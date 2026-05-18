@@ -3,6 +3,7 @@ import { BillingService } from './billing.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
 import { CurrentUser } from '../common/decorators/user.decorator';
+import { AuthUser } from '../common/types/auth-user.type';
 
 @Controller('billing')
 export class BillingController {
@@ -11,7 +12,7 @@ export class BillingController {
 
   @Post('checkout')
   @UseGuards(JwtAuthGuard, TenantGuard)
-  async createCheckoutSession(@CurrentUser() user: any, @Body() body: { plan: string }) {
+  async createCheckoutSession(@CurrentUser() user: AuthUser, @Body() body: { plan: string }) {
     try {
       this.logger.log(`Checkout request - User: ${user?.id}, Plan: ${body.plan}`);
       return await this.billingService.createCheckoutSession(user.tenantId, body.plan);
@@ -23,25 +24,25 @@ export class BillingController {
 
   @Get('subscription')
   @UseGuards(JwtAuthGuard)
-  async getSubscription(@CurrentUser() user: any) {
+  async getSubscription(@CurrentUser() user: AuthUser) {
     return this.billingService.getSubscription(user.tenantId);
   }
 
   @Get('invoices')
   @UseGuards(JwtAuthGuard)
-  async getInvoices(@CurrentUser() user: any) {
+  async getInvoices(@CurrentUser() user: AuthUser) {
     return this.billingService.getInvoices(user.tenantId);
   }
 
   @Post('cancel')
   @UseGuards(JwtAuthGuard)
-  async cancelSubscription(@CurrentUser() user: any) {
+  async cancelSubscription(@CurrentUser() user: AuthUser) {
     return this.billingService.cancelSubscription(user.tenantId);
   }
 
   @Post('update-plan')
   @UseGuards(JwtAuthGuard)
-  async updatePlan(@CurrentUser() user: any, @Body() body: { plan: string }) {
+  async updatePlan(@CurrentUser() user: AuthUser, @Body() body: { plan: string }) {
     return this.billingService.updatePlan(user.tenantId, body.plan);
   }
 

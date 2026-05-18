@@ -31,19 +31,22 @@ export class StoreService {
     return store;
   }
 
-  async findAll(tenantId: string) {
-    return this.prisma.store.findMany({
-      where: { tenantId },
-      include: {
-        _count: {
-          select: {
-            products: true,
-            orders: true,
-            customers: true,
-          },
+  // AUDIT #4: paginated, ordered, returns total for client pagination
+  async findAll(tenantId: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.prisma.store.findMany({
+        where: { tenantId },
+        skip,
+        take: limit,
+        include: {
+          _count: { select: { products: true, orders: true, customers: true } },
         },
-      },
-    });
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.store.count({ where: { tenantId } }),
+    ]);
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: string) {
@@ -128,5 +131,46 @@ export class StoreService {
       profitScore: store.profitScore,
       conversionRate: store.conversionRate,
     };
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // AUDIT #13: Tenant-scoped wrappers. Every per-store mutation/read
+  // must verify the store belongs to the caller's tenant.
+  // ═══════════════════════════════════════════════════════════════
+  private async assertTenantOwnsStore(tenantId: string, id: string): Promise<void> {
+    const store = await this.prisma.store.findFirst({
+      where: { id, tenantId },
+      select: { id: true },
+    });
+    if (!store) {
+      // Use NotFoundException (not Forbidden) to avoid leaking the existence of cross-tenant resources
+      const { NotFoundException } = await import('@nestjs/common');
+      throw new NotFoundException('Store not found');
+    }
+  }
+
+  async findOneByTenant(tenantId: string, id: string) {
+    await this.assertTenantOwnsStore(tenantId, id);
+    return this.findOne(id);
+  }
+
+  async getAnalyticsByTenant(tenantId: string, id: string) {
+    await this.assertTenantOwnsStore(tenantId, id);
+    return this.getAnalytics(id);
+  }
+
+  async updateByTenant(tenantId: string, id: string, dto: UpdateStoreDto) {
+    await this.assertTenantOwnsStore(tenantId, id);
+    return this.update(id, dto);
+  }
+
+  async syncStoreByTenant(tenantId: string, id: string) {
+    await this.assertTenantOwnsStore(tenantId, id);
+    return this.syncStore(id);
+  }
+
+  async deleteByTenant(tenantId: string, id: string) {
+    await this.assertTenantOwnsStore(tenantId, id);
+    return this.delete(id);
   }
 }

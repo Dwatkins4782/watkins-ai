@@ -54,7 +54,9 @@
     "helmet": "^7.1.0",
     "compression": "^1.7.4",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "@nestjs/cache-manager": "^2.2.2",
+    "cache-manager": "^5.7.6"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

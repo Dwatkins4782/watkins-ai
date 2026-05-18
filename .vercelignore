@@ -1,0 +1,9 @@
+# AUDIT #20: prevent accidental deploy of deprecated frontend tree
+frontend/
+backend/dist/
+*.test.ts
+*.test.tsx
+*.spec.ts
+__tests__/
+**/.env*
+!.env.example

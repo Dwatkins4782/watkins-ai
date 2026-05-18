@@ -22,7 +22,8 @@ export class EmailService {
     }
   }
 
-  async createFlow(storeId: string, flowData: any) {
+  async createFlow(tenantId: string, storeId: string, flowData: any /* CreateEmailFlowDto validated by controller */) {
+    await this.assertTenantOwnsStore(tenantId, storeId);
     const store = await this.prisma.store.findUnique({ where: { id: storeId } });
 
     // Generate AI content if requested
@@ -51,34 +52,39 @@ export class EmailService {
     });
   }
 
-  async getFlows(storeId: string) {
+  async getFlows(tenantId: string, storeId: string) {
+    await this.assertTenantOwnsStore(tenantId, storeId);
     return this.prisma.emailFlow.findMany({
       where: { storeId },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async activateFlow(flowId: string) {
+  async activateFlow(tenantId: string, flowId: string) {
+    await this.assertTenantOwnsFlow(tenantId, flowId);
     return this.prisma.emailFlow.update({
       where: { id: flowId },
       data: { status: 'ACTIVE' },
     });
   }
 
-  async pauseFlow(flowId: string) {
+  async pauseFlow(tenantId: string, flowId: string) {
+    await this.assertTenantOwnsFlow(tenantId, flowId);
     return this.prisma.emailFlow.update({
       where: { id: flowId },
       data: { status: 'PAUSED' },
     });
   }
 
-  async getFlow(flowId: string) {
+  async getFlow(tenantId: string, flowId: string) {
+    await this.assertTenantOwnsFlow(tenantId, flowId);
     return this.prisma.emailFlow.findUnique({
       where: { id: flowId },
     });
   }
 
-  async deleteFlow(flowId: string) {
+  async deleteFlow(tenantId: string, flowId: string) {
+    await this.assertTenantOwnsFlow(tenantId, flowId);
     return this.prisma.emailFlow.delete({
       where: { id: flowId },
     });
@@ -109,7 +115,8 @@ export class EmailService {
     }
   }
 
-  async createCampaign(storeId: string, campaignData: any) {
+  async createCampaign(tenantId: string, storeId: string, campaignData: any) {
+    await this.assertTenantOwnsStore(tenantId, storeId);
     return this.prisma.campaign.create({
       data: {
         storeId,
@@ -120,7 +127,8 @@ export class EmailService {
     });
   }
 
-  async getCampaigns(storeId: string) {
+  async getCampaigns(tenantId: string, storeId: string) {
+    await this.assertTenantOwnsStore(tenantId, storeId);
     return this.prisma.campaign.findMany({
       where: { storeId, type: 'EMAIL' },
       orderBy: { createdAt: 'desc' },
