@@ -7,15 +7,18 @@ import { toast } from 'sonner';
 
 interface Recommendation {
   id: string;
-  type: string;
+  type?: string;
   title: string;
   description: string;
-  priority: string;
+  priority?: string;
   impact: string;
   effort: string;
-  status: string;
-  metadata: any;
-  createdAt: string;
+  status?: string;
+  metadata?: any;
+  category?: string;
+  createdAt?: string;
+  acceptedAt?: string;
+  completedAt?: string;
   implementedAt?: string;
 }
 
@@ -267,13 +270,13 @@ export default function RecommendationsPage() {
                 className="p-6 hover:bg-gray-50 cursor-pointer transition"
               >
                 <div className="flex items-start gap-4">
-                  <div className="text-4xl">{getTypeIcon(rec.type)}</div>
+                  <div className="text-4xl">{getTypeIcon(rec.type ?? '')}</div>
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="text-lg font-semibold text-gray-900">
                         {rec.title}
                       </h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(rec.status)}`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(rec.status ?? '')}`}>
                         {rec.status}
                       </span>
                     </div>
@@ -282,7 +285,7 @@ export default function RecommendationsPage() {
                       <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
                         {rec.type}
                       </span>
-                      <span className={`px-2 py-1 text-xs rounded ${getPriorityColor(rec.priority)}`}>
+                      <span className={`px-2 py-1 text-xs rounded ${getPriorityColor(rec.priority ?? '')}`}>
                         Priority: {rec.priority}
                       </span>
                       <span className={`px-2 py-1 text-xs rounded ${getImpactColor(rec.impact)}`}>
@@ -292,7 +295,7 @@ export default function RecommendationsPage() {
                         Effort: {rec.effort}
                       </span>
                       <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                        {new Date(rec.createdAt).toLocaleDateString()}
+                        {rec.createdAt ? new Date(rec.createdAt).toLocaleDateString() : ''}
                       </span>
                     </div>
                   </div>
@@ -319,14 +322,14 @@ export default function RecommendationsPage() {
             
             <div className="p-6 space-y-6">
               <div className="flex items-start gap-4">
-                <div className="text-5xl">{getTypeIcon(selectedRecommendation.type)}</div>
+                <div className="text-5xl">{getTypeIcon(selectedRecommendation.type ?? '')}</div>
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold mb-2">{selectedRecommendation.title}</h3>
                   <div className="flex flex-wrap gap-2 mb-4">
                     <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded">
                       {selectedRecommendation.type}
                     </span>
-                    <span className={`px-3 py-1 text-sm rounded ${getPriorityColor(selectedRecommendation.priority)}`}>
+                    <span className={`px-3 py-1 text-sm rounded ${getPriorityColor(selectedRecommendation.priority ?? '')}`}>
                       Priority: {selectedRecommendation.priority}
                     </span>
                     <span className={`px-3 py-1 text-sm rounded ${getImpactColor(selectedRecommendation.impact)}`}>
@@ -335,7 +338,7 @@ export default function RecommendationsPage() {
                     <span className={`px-3 py-1 text-sm rounded ${getEffortColor(selectedRecommendation.effort)}`}>
                       Effort: {selectedRecommendation.effort}
                     </span>
-                    <span className={`px-3 py-1 text-sm rounded ${getStatusColor(selectedRecommendation.status)}`}>
+                    <span className={`px-3 py-1 text-sm rounded ${getStatusColor(selectedRecommendation.status ?? '')}`}>
                       {selectedRecommendation.status}
                     </span>
                   </div>
@@ -359,7 +362,7 @@ export default function RecommendationsPage() {
               )}
 
               <div className="border-t pt-4 text-sm text-gray-500">
-                <p>Created: {new Date(selectedRecommendation.createdAt).toLocaleString()}</p>
+                <p>Created: {selectedRecommendation.createdAt ? new Date(selectedRecommendation.createdAt).toLocaleString() : ''}</p>
                 {selectedRecommendation.implementedAt && (
                   <p>Implemented: {new Date(selectedRecommendation.implementedAt).toLocaleString()}</p>
                 )}

@@ -10,12 +10,12 @@ interface Ticket {
   subject: string;
   status: string;
   priority: string;
-  category: string;
-  message: string;
-  customerEmail: string;
-  customerName: string;
+  category?: string;
+  message?: string;
+  customerEmail?: string;
+  customerName?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export default function SupportPage() {
@@ -398,7 +398,7 @@ export default function SupportPage() {
 
               <div className="border-t pt-4 text-sm text-gray-500">
                 <p>Created: {new Date(selectedTicket.createdAt).toLocaleString()}</p>
-                <p>Updated: {new Date(selectedTicket.updatedAt).toLocaleString()}</p>
+                <p>Updated: {selectedTicket.updatedAt ? new Date(selectedTicket.updatedAt).toLocaleString() : ''}</p>
               </div>
 
               <div className="flex gap-3 pt-4">

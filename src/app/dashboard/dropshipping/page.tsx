@@ -2,27 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
-
-type Supplier = {
-  id?: string;
-  name: string;
-  slug: string;
-  website: string;
-  categories: string[];
-  niches: string[];
-  regions: string[];
-  avgShippingDays: number;
-  avgRating: number;
-  productCount: number;
-  autoFulfillment: boolean;
-  inventorySync: boolean;
-  monthlyFee: number;
-  transactionFee: number;
-  description: string;
-  pros: string[];
-  cons: string[];
-  featured: boolean;
-};
+import type { DropshipSupplier as Supplier } from '@/types/api';
 
 type Connection = {
   id: string;
@@ -61,7 +41,7 @@ export default function DropshippingPage() {
       const [suppliersData] = await Promise.all([
         api.getSuppliers(),
       ]);
-      setSuppliers(Array.isArray(suppliersData) ? suppliersData : suppliersData?.suppliers || []);
+      setSuppliers(suppliersData || []);
     } catch (error) {
       console.error('Failed to load suppliers:', error);
     } finally {
@@ -197,7 +177,7 @@ export default function DropshippingPage() {
                 <div className="grid grid-cols-4 gap-3 mb-4">
                   <div className="text-center p-2 bg-gray-50 rounded-lg">
                     <p className="text-xs text-gray-500">Products</p>
-                    <p className="font-bold text-gray-900">{supplier.productCount >= 1000 ? `${(supplier.productCount / 1000).toFixed(0)}K` : supplier.productCount}</p>
+                    <p className="font-bold text-gray-900">{(supplier.productCount ?? 0) >= 1000 ? `${((supplier.productCount ?? 0) / 1000).toFixed(0)}K` : (supplier.productCount ?? '—')}</p>
                   </div>
                   <div className="text-center p-2 bg-gray-50 rounded-lg">
                     <p className="text-xs text-gray-500">Rating</p>
@@ -209,7 +189,7 @@ export default function DropshippingPage() {
                   </div>
                   <div className="text-center p-2 bg-gray-50 rounded-lg">
                     <p className="text-xs text-gray-500">Cost</p>
-                    <p className="font-bold text-gray-900">{supplier.monthlyFee > 0 ? `$${supplier.monthlyFee}/mo` : 'Free'}</p>
+                    <p className="font-bold text-gray-900">{(supplier.monthlyFee ?? 0) > 0 ? `$${supplier.monthlyFee}/mo` : 'Free'}</p>
                   </div>
                 </div>
 

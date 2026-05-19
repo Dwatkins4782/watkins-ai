@@ -24,6 +24,7 @@ export interface AuthUser {
   tenantId: string;
   role: string;
   emailVerified: boolean;
+  tenant?: { name?: string; billingEmail?: string; notificationEmail?: string; timezone?: string; language?: string };
 }
 
 export interface AuthResponse {
@@ -43,6 +44,7 @@ export interface Store {
   status: 'active' | 'syncing' | 'error' | 'disconnected';
   createdAt: string;
   updatedAt: string;
+  products?: unknown[];
   _count?: { products: number; orders: number; customers: number };
 }
 
@@ -77,15 +79,17 @@ export interface EmailFlow {
   storeId: string;
   name: string;
   trigger: string;
+  type?: string;
   steps: EmailFlowStep[];
   active: boolean;
+  isActive?: boolean;
   createdAt: string;
 }
 
 export interface CreateEmailFlowRequest {
   name: string;
-  trigger: 'signup' | 'abandoned_cart' | 'post_purchase' | 'win_back' | 'custom';
-  steps: EmailFlowStep[];
+  trigger: 'signup' | 'abandoned_cart' | 'post_purchase' | 'win_back' | 'custom' | string;
+  steps?: EmailFlowStep[];
   active?: boolean;
 }
 
@@ -102,6 +106,11 @@ export interface SupportTicket {
   priority: TicketPriority;
   channel: string;
   customerId?: string;
+  category?: string;
+  message?: string;
+  customerEmail?: string;
+  customerName?: string;
+  updatedAt?: string;
   createdAt: string;
 }
 
@@ -117,15 +126,23 @@ export type PlanName = 'starter' | 'growth' | 'professional' | 'enterprise';
 
 export interface Subscription {
   id: string;
+  userId?: string;
   plan: PlanName;
   status: 'active' | 'trialing' | 'past_due' | 'cancelled';
+  currentPeriodStart?: string;
   currentPeriodEnd: string;
   cancelAtPeriodEnd: boolean;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CheckoutResponse {
   url: string;
   sessionId: string;
+  success?: boolean;
+  message?: string;
 }
 
 export interface Invoice {
@@ -144,6 +161,10 @@ export interface AnalyticsDashboard {
   orders: number;
   visitors: number;
   conversionRate: number;
+  profitScore?: number;
+  totalInsights?: number;
+  last30Days?: { revenue: number; orders?: number };
+  insights?: Insight[];
   topProducts: Array<{ id: string; name: string; revenue: number }>;
   revenueByDay: Array<{ date: string; revenue: number }>;
 }
@@ -181,6 +202,14 @@ export interface DropshipSupplier {
   avgRating: number;
   avgShippingDays: number;
   featured: boolean;
+  productCount?: number;
+  autoFulfillment?: boolean;
+  inventorySync?: boolean;
+  monthlyFee?: number;
+  transactionFee?: number;
+  description?: string;
+  pros?: string[];
+  cons?: string[];
 }
 
 export interface SupplierFilters {

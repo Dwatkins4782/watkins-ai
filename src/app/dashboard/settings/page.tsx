@@ -8,9 +8,13 @@ import { toast } from 'sonner';
 interface UserProfile {
   id: string;
   email: string;
-  name: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
   role: string;
   tenantId: string;
+  tenant?: { name?: string; billingEmail?: string; notificationEmail?: string; timezone?: string; language?: string };
+  emailVerified?: boolean;
 }
 
 interface TenantSettings {

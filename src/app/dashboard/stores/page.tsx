@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
+import type { StorePlatform } from '@/types/api';
 
 export default function StoresPage() {
   const { user } = useAuthStore();
@@ -33,7 +34,7 @@ export default function StoresPage() {
   const handleAddStore = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.createStore(newStore);
+      await api.createStore({ ...newStore, platform: newStore.platform as StorePlatform });
       setShowAddModal(false);
       setNewStore({ name: '', url: '', platform: 'SHOPIFY' });
       loadStores();

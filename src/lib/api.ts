@@ -136,7 +136,7 @@ export const billingApi = {
   getSubscription: (): Promise<AxiosResponse<Subscription>> =>
     api.get("/billing/subscription"),
   getInvoices: (): Promise<AxiosResponse<Invoice[]>> => api.get("/billing/invoices"),
-  cancel: (): Promise<AxiosResponse<{ cancelled: boolean }>> => api.post("/billing/cancel"),
+  cancel: (): Promise<AxiosResponse<{ cancelled: boolean; message?: string }>> => api.post("/billing/cancel"),
   updatePlan: (plan: PlanName): Promise<AxiosResponse<Subscription>> =>
     api.post("/billing/update-plan", { plan }),
 };
@@ -151,16 +151,66 @@ export const dropshippingApi = {
     api.get(`/dropshipping/stores/${storeId}/recommended`),
 };
 
-// Default export keeps backward compat with existing imports
+// Default export — flat convenience layer consumed by dashboard pages
 const apiClient = {
-  authApi,
-  storeApi,
-  crawlerApi,
-  emailApi,
-  analyticsApi,
-  recommendationsApi,
-  supportApi,
-  billingApi,
-  dropshippingApi,
+  // Auth
+  me: () => authApi.me().then((res) => res.data),
+
+  // Stores
+  getStores: () => storeApi.list().then((res) => res.data.data),
+  getStore: (id: string) => storeApi.get(id).then((res) => res.data),
+  createStore: (data: CreateStoreRequest) => storeApi.create(data).then((res) => res.data),
+
+  // Crawler
+  crawlWebsite: (storeId: string) => crawlerApi.startCrawl(storeId).then((res) => res.data),
+  getCrawlReports: (storeId: string) => crawlerApi.getReports(storeId).then((res) => res.data),
+
+  // Email
+  getEmailFlows: (storeId: string) => emailApi.getFlows(storeId).then((res) => res.data),
+  createEmailFlow: (storeId: string, data: CreateEmailFlowRequest) =>
+    emailApi.createFlow(storeId, data).then((res) => res.data),
+  activateEmailFlow: (flowId: string) => emailApi.activateFlow(flowId).then((res) => res.data),
+
+  // Analytics
+  getDashboard: (storeId: string) => analyticsApi.getDashboard(storeId).then((res) => res.data),
+  getInsights: (storeId: string) => analyticsApi.getInsights(storeId).then((res) => res.data),
+  generateInsights: (storeId: string) =>
+    analyticsApi.generateInsights(storeId).then((res) => res.data),
+
+  // Recommendations
+  getRecommendations: (storeId: string) =>
+    recommendationsApi.getAll(storeId).then((res) => res.data),
+  generateRecommendations: (storeId: string) =>
+    recommendationsApi.generate(storeId).then((res) => res.data),
+
+  // Support
+  getSupportTickets: (storeId: string) =>
+    supportApi.getTickets(storeId).then((res) => res.data),
+  createSupportTicket: (storeId: string, data: CreateTicketRequest) =>
+    supportApi.createTicket(storeId, data).then((res) => res.data),
+
+  // Billing
+  getSubscription: () => billingApi.getSubscription().then((res) => res.data),
+  getInvoices: () => billingApi.getInvoices().then((res) => res.data),
+  createCheckout: (plan: PlanName | string) =>
+    billingApi.createCheckoutSession(plan as PlanName).then((res) => res.data),
+  cancelSubscription: () => billingApi.cancel().then((res) => res.data),
+  updatePlan: (plan: PlanName | string) => billingApi.updatePlan(plan as PlanName).then((res) => res.data),
+
+  // Dropshipping
+  getSuppliers: (filters?: SupplierFilters) =>
+    dropshippingApi.getSuppliers(filters).then((res) => res.data),
+  connectSupplier: (storeId: string, data: unknown) =>
+    api.post(`/dropshipping/stores/${storeId}/connect`, data).then((res) => res.data),
+
+  // Optimization
+  getOptimizedProducts: (storeId: string) =>
+    api.get(`/optimization/stores/${storeId}/optimized-products`).then((res) => res.data),
+  optimizeProduct: (productId: string) =>
+    api.post(`/optimization/products/${productId}/optimize`).then((res) => res.data),
+
+  // DFY
+  getDFYProjects: () => api.get("/dfy/projects").then((res) => res.data),
+  createDFYProject: (data: unknown) => api.post("/dfy/projects", data).then((res) => res.data),
 };
 export default apiClient;

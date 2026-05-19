@@ -7,16 +7,16 @@ import { toast } from 'sonner';
 
 interface Subscription {
   id: string;
-  userId: string;
+  userId?: string;
   plan: string;
   status: string;
-  currentPeriodStart: string;
+  currentPeriodStart?: string;
   currentPeriodEnd: string;
   cancelAtPeriodEnd: boolean;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Invoice {
@@ -297,7 +297,7 @@ export default function BillingPage() {
             <div className="text-right">
               <p className="text-sm text-gray-500">Current period</p>
               <p className="text-sm font-medium text-gray-900">
-                {new Date(subscription.currentPeriodStart).toLocaleDateString()} - {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                {subscription.currentPeriodStart ? new Date(subscription.currentPeriodStart).toLocaleDateString() : '—'} - {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
               </p>
               {subscription.cancelAtPeriodEnd && (
                 <p className="text-sm text-red-600 mt-2">

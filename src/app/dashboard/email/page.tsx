@@ -8,9 +8,10 @@ import { toast } from 'sonner';
 interface EmailFlow {
   id: string;
   name: string;
-  type: string;
+  type?: string;
   trigger: string;
-  isActive: boolean;
+  isActive?: boolean;
+  active?: boolean;
   createdAt: string;
 }
 
@@ -242,7 +243,7 @@ export default function EmailPage() {
                         {flow.isActive ? 'Active' : 'Inactive'}
                       </span>
                       <button
-                        onClick={() => toggleFlow(flow.id, flow.isActive)}
+                        onClick={() => toggleFlow(flow.id, flow.isActive ?? false)}
                         className="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50"
                       >
                         {flow.isActive ? 'Deactivate' : 'Activate'}

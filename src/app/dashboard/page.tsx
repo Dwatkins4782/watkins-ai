@@ -10,7 +10,7 @@ import {
 export default function DashboardPage() {
   const { data: stores } = useQuery({
     queryKey: ['stores'],
-    queryFn: () => storeApi.list().then(res => res.data),
+    queryFn: () => storeApi.list().then(res => res.data.data),
   })
 
   const activeStore = stores?.[0]
