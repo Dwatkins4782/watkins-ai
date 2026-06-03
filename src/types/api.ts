@@ -56,7 +56,7 @@ export interface CreateStoreRequest {
   apiSecret?: string;
 }
 
-export interface UpdateStoreRequest extends Partial<CreateStoreRequest> {}
+export type UpdateStoreRequest = Partial<CreateStoreRequest>;
 
 export interface PaginatedResponse<T> {
   data: T[];

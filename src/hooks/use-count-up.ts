@@ -9,11 +9,8 @@ import { useState, useEffect } from "react";
  */
 export function useCountUp(end: number, dur = 2000): number {
   const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
 
   useEffect(() => {
-    if (started) return;
-    setStarted(true);
     let value = 0;
     const increment = end / (dur / 16);
     const timer = setInterval(() => {
@@ -26,7 +23,7 @@ export function useCountUp(end: number, dur = 2000): number {
       }
     }, 16);
     return () => clearInterval(timer);
-  }, [end, dur, started]);
+  }, [end, dur]);
 
   return count;
 }

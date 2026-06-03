@@ -104,20 +104,10 @@ export default function EmailPage() {
     }
   };
 
-  const createCampaign = async () => {
-    try {
-      const campaignData = {
-        name: 'New Campaign',
-        subject: 'Check out our latest products!',
-        template: 'default',
-      };
-      toast.info('Campaign creation coming soon');
-      toast.success('Campaign created');
-      loadEmailData();
-    } catch (error) {
-      console.error('Failed to create campaign:', error);
-      toast.error('Failed to create campaign');
-    }
+  const createCampaign = () => {
+    // One-off campaign creation isn't available yet — flows are the supported
+    // path today. Be honest with the user instead of falsely reporting success.
+    toast.info('One-off campaigns are coming soon — create an automated flow for now.');
   };
 
   if (loading && stores.length === 0) {

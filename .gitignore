@@ -38,3 +38,6 @@ docker-compose.override.yml
 # Misc
 coverage
 .vercel
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
