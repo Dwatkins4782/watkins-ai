@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { humanizeNetworkError } from "@/lib/network-error";
 
 const inputStyle: React.CSSProperties = { width: "100%", padding: "12px 16px", borderRadius: 10, background: "var(--bg-primary)", border: "1px solid var(--border-default)", color: "var(--text-primary)", fontSize: 15, fontFamily: "'Sora', sans-serif", outline: "none", transition: "border-color 0.2s", boxSizing: "border-box" as const };
 
@@ -17,7 +18,7 @@ export default function ForgotPasswordPage() {
       const res = await fetch(`${apiUrl}/auth/forgot-password`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || "Something went wrong."); }
       setSent(true);
-    } catch (err: unknown) { setError(err instanceof Error ? err.message : "Something went wrong"); }
+    } catch (err: unknown) { setError(humanizeNetworkError(err, "the request")); }
     finally { setLoading(false); }
   }
 

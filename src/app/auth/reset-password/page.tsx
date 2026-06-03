@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
+import { humanizeNetworkError } from "@/lib/network-error";
 
 const inputStyle: React.CSSProperties = { width: "100%", padding: "12px 16px", borderRadius: 10, background: "var(--bg-primary)", border: "1px solid var(--border-default)", color: "var(--text-primary)", fontSize: 15, fontFamily: "'Sora', sans-serif", outline: "none", transition: "border-color 0.2s", boxSizing: "border-box" as const };
 
@@ -28,7 +29,7 @@ function ResetForm() {
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || "Reset failed. The link may have expired."); }
       setSuccess(true);
       setTimeout(() => router.push("/auth/login"), 2500);
-    } catch (err: unknown) { setError(err instanceof Error ? err.message : "Something went wrong"); }
+    } catch (err: unknown) { setError(humanizeNetworkError(err, "the password reset")); }
     finally { setLoading(false); }
   }
 

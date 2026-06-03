@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useAuthStore } from "@/lib/store";
+import { humanizeNetworkError } from "@/lib/network-error";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -17,7 +18,7 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data.message || "Invalid credentials");
       if (data.token && data.user) useAuthStore.getState().login(data.token, data.user);
       window.location.href = "/dashboard";
-    } catch (err: unknown) { setError(err instanceof Error ? err.message : "Something went wrong"); } finally { setLoading(false); }
+    } catch (err: unknown) { setError(humanizeNetworkError(err, "sign-in")); } finally { setLoading(false); }
   };
 
   const update = (f: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(prev => ({ ...prev, [f]: e.target.value }));

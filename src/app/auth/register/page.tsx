@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { humanizeNetworkError } from "@/lib/network-error";
 import { z } from "zod";
 
 // AUDIT #19: schema-driven, field-level validation
@@ -50,7 +51,7 @@ export default function RegisterPage() {
       setRegisteredEmail(data.email);
       setRegistered(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(humanizeNetworkError(err, "sign-up"));
     } finally {
       setLoading(false);
     }
