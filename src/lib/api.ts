@@ -22,6 +22,7 @@ import type {
   SupplierFilters,
   PlanName,
 } from "@/types/api";
+import { useAuthStore } from "@/lib/store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
 
@@ -39,8 +40,21 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("token");
+    const isAuthCall = String(error.config?.url || "").startsWith("/auth/");
+    const onAuthPage =
+      typeof window !== "undefined" && window.location.pathname.startsWith("/auth/");
+    // A 401 from /auth/login (wrong password) must surface as an error on the
+    // form, not reload the page and swallow it. Only expired/invalid sessions on
+    // protected calls should sign the user out.
+    if (
+      error.response?.status === 401 &&
+      typeof window !== "undefined" &&
+      !isAuthCall &&
+      !onAuthPage
+    ) {
+      // Clear BOTH the raw token and the persisted zustand auth state, otherwise
+      // the dashboard guard still thinks the user is signed in.
+      useAuthStore.getState().logout();
       window.location.href = "/auth/login";
     }
     return Promise.reject(error);
@@ -148,7 +162,7 @@ export const dropshippingApi = {
   getSupplier: (id: string): Promise<AxiosResponse<DropshipSupplier>> =>
     api.get(`/dropshipping/suppliers/${id}`),
   getRecommended: (storeId: string): Promise<AxiosResponse<DropshipSupplier[]>> =>
-    api.get(`/dropshipping/stores/${storeId}/recommended`),
+    api.get(`/dropshipping/stores/${storeId}/recommendations`),
 };
 
 // Default export — flat convenience layer consumed by dashboard pages

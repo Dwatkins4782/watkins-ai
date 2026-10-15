@@ -1,34 +1,21 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard"];
-const AUTH_ONLY_PREFIXES = ["/auth/login", "/auth/register"];
-
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  // Honor either an HttpOnly cookie set server-side OR the client-side token shim
-  const token =
-    req.cookies.get("token")?.value ||
-    req.cookies.get("auth-token")?.value ||
-    req.cookies.get("ecrh_session")?.value;
-
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
-  const isAuthPage = AUTH_ONLY_PREFIXES.some((p) => pathname.startsWith(p));
-
-  // Block unauthenticated access to dashboard
-  if (isProtected && !token) {
-    const loginUrl = new URL("/auth/login", req.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Redirect authenticated users away from login/register
-  if (isAuthPage && token) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
-  }
-
-  // Security headers
+/**
+ * Edge middleware: security headers only.
+ *
+ * This previously gated /dashboard/* on a "token" / "auth-token" /
+ * "ecrh_session" cookie — but the app never sets any cookie. The session JWT
+ * lives in localStorage (src/lib/store.ts), which edge middleware cannot read.
+ * Result: every successful login did `window.location.href = "/dashboard"`,
+ * the middleware saw no cookie, and bounced the user straight back to
+ * /auth/login. Nobody could reach the dashboard (or billing).
+ *
+ * Auth is enforced where it actually matters:
+ *   - the backend API requires a valid JWT on every protected route, and
+ *   - src/app/dashboard/layout.tsx redirects unauthenticated users client-side.
+ */
+export function middleware(_req: NextRequest) {
   const res = NextResponse.next();
   res.headers.set("X-Frame-Options", "SAMEORIGIN");
   res.headers.set("X-Content-Type-Options", "nosniff");
@@ -42,10 +29,7 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/auth/login",
-    "/auth/register",
-    // Apply security headers everywhere except _next internals & static
+    // Apply security headers everywhere except _next internals & static assets
     "/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)",
   ],
 };

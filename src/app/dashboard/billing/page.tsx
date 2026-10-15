@@ -145,6 +145,19 @@ export default function BillingPage() {
 
   useEffect(() => {
     loadBillingData();
+    // Returning from Stripe Checkout (success_url / cancel_url).
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get('checkout');
+    if (checkout === 'success') {
+      toast.success('Payment received — your plan is being activated. This can take a few seconds.');
+      // The webhook may land just after the redirect; refresh once more shortly.
+      setTimeout(() => loadBillingData(), 4000);
+    } else if (checkout === 'cancelled') {
+      toast('Checkout cancelled — you have not been charged.');
+    }
+    if (checkout) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
   }, []);
 
   const loadBillingData = async () => {
@@ -162,12 +175,14 @@ export default function BillingPage() {
         return [];
       });
 
+      // These are our own DB invoice rows (amount already in dollars, ISO dates),
+      // not raw Stripe invoice objects.
       const formattedInvoices = (invoiceData || []).map((inv: any) => ({
         id: inv.id,
-        amount: inv.amount / 100,
+        amount: Number(inv.amount) || 0,
         status: inv.status,
-        date: new Date(inv.created * 1000).toISOString(),
-        description: `${inv.plan} Plan - ${inv.number || inv.id}`,
+        date: new Date(inv.paidAt || inv.createdAt || Date.now()).toISOString(),
+        description: `${subData?.plan ? String(subData.plan).toLowerCase() : 'Subscription'} plan - ${inv.stripeInvoiceId || inv.id}`,
         invoiceUrl: inv.hostedInvoiceUrl || inv.pdfUrl,
       }));
 
@@ -181,6 +196,12 @@ export default function BillingPage() {
   };
 
   const handleUpgrade = (plan: Plan) => {
+    // Moving to Free is a cancellation, not a checkout (there is no Free price
+    // in Stripe; calling checkout for it just errors).
+    if (plan.id === 'free') {
+      setShowCancelModal(true);
+      return;
+    }
     setSelectedPlan(plan);
     setShowUpgradeModal(true);
   };
@@ -233,7 +254,9 @@ export default function BillingPage() {
 
   const getCurrentPlan = () => {
     if (!subscription) return PLANS[0];
-    return PLANS.find(p => p.id === subscription.plan) || PLANS[0];
+    // DB stores the enum in UPPERCASE ("STARTER"); UI ids are lowercase.
+    const current = String(subscription.plan || '').toLowerCase();
+    return PLANS.find(p => p.id === current) || PLANS[0];
   };
 
   const getStatusColor = (status: string) => {

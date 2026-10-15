@@ -1,4 +1,4 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { Injectable, Logger, Optional, NotFoundException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma.service';
@@ -20,7 +20,7 @@ export class CrawlerService {
     });
 
     if (!store) {
-      throw new Error('Store not found');
+      throw new NotFoundException('Store not found');
     }
 
     // Create crawl report
@@ -116,7 +116,7 @@ export class CrawlerService {
     });
 
     if (!store) {
-      throw new Error('Store not found');
+      throw new NotFoundException('Store not found');
     }
 
     // Queue audit job

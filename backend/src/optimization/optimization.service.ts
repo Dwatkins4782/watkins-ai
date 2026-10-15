@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { AiService } from '../ai/ai.service';
 
@@ -15,7 +15,7 @@ export class OptimizationService {
       include: { store: true },
     });
 
-    if (!product) throw new Error('Product not found');
+    if (!product) throw new NotFoundException('Product not found');
 
     const optimized = await this.aiService.optimizeProductPage({
       title: product.title,

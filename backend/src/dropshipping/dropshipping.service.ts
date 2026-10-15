@@ -412,8 +412,8 @@ Only return valid JSON, nothing else.`;
     }
 
     // Fallback: simple category/niche matching
-    const tags = storeContext.productTags.map((t) => t.toLowerCase());
-    const types = storeContext.productTypes.map((t) => t?.toLowerCase() || '');
+    const tags = storeContext.productTags.map((t) => String(t).toLowerCase());
+    const types = storeContext.productTypes.map((t) => (t ? String(t).toLowerCase() : ''));
 
     const scored = allSuppliers.map((supplier) => {
       let score = 0;

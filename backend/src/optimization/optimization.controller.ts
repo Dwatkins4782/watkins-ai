@@ -1,9 +1,10 @@
 import { Controller, Post, Get, Param, UseGuards } from '@nestjs/common';
 import { OptimizationService } from './optimization.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../common/guards/tenant.guard';
 
 @Controller('optimization')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class OptimizationController {
   constructor(private optimizationService: OptimizationService) {}
 

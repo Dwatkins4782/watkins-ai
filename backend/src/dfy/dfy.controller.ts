@@ -1,10 +1,11 @@
 import { Controller, Post, Get, Param, Body, UseGuards } from '@nestjs/common';
 import { DfyService } from './dfy.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../common/guards/tenant.guard';
 import { CurrentUser } from '../common/decorators/user.decorator';
 
 @Controller('dfy')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class DfyController {
   constructor(private dfyService: DfyService) {}
 

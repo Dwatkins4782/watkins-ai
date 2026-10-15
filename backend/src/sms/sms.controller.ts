@@ -1,4 +1,5 @@
 import { Controller, Post, Get, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { SmsService } from './sms.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
@@ -38,6 +39,9 @@ export class SmsController {
     return this.smsService.deleteFlow(flowId);
   }
 
+  // Raw send to an arbitrary number is a toll-fraud vector on your Twilio bill;
+  // cap it tightly (5/min per client) on top of the global throttle.
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('send')
   async sendSms(@Body() body: { to: string; message: string }) {
     return this.smsService.sendSms(body.to, body.message);

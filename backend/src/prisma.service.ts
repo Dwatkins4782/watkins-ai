@@ -29,12 +29,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     }
 
     const models = Reflect.ownKeys(this).filter(
-      (key) => typeof key === 'string' && key[0] !== '_',
+      (key): key is string => typeof key === 'string' && key[0] !== '_',
     );
 
     return Promise.all(
       models.map((modelKey) => {
-        return this[modelKey].deleteMany();
+        return (this as Record<string, any>)[modelKey].deleteMany();
       }),
     );
   }

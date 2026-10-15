@@ -1,9 +1,10 @@
 import { Controller, Post, Get, Param, UseGuards } from '@nestjs/common';
 import { CrawlerService } from './crawler.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../common/guards/tenant.guard';
 
 @Controller('crawler')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class CrawlerController {
   constructor(private crawlerService: CrawlerService) {}
 

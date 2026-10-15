@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { AiService } from '../ai/ai.service';
 
@@ -13,7 +13,7 @@ export class AnalyticsService {
     // Verify store exists
     const store = await this.prisma.store.findUnique({ where: { id: storeId } });
     if (!store) {
-      throw new Error('Store not found');
+      throw new NotFoundException('Store not found');
     }
 
     const [orderStats, productCount, customerCount] = await Promise.all([
@@ -48,7 +48,7 @@ export class AnalyticsService {
       include: { products: true, orders: { take: 100, orderBy: { placedAt: 'desc' } } },
     });
 
-    if (!store) throw new Error('Store not found');
+    if (!store) throw new NotFoundException('Store not found');
 
     const insights = await this.aiService.generateInsights({
       storeData: store,
@@ -91,7 +91,7 @@ export class AnalyticsService {
     // Verify store exists
     const store = await this.prisma.store.findUnique({ where: { id: storeId } });
     if (!store) {
-      throw new Error('Store not found');
+      throw new NotFoundException('Store not found');
     }
 
     const profitScore = await this.calculateProfitScore(storeId);

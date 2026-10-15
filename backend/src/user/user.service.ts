@@ -39,10 +39,30 @@ export class UserService {
   }
 
   async updateProfile(id: string, data: any) {
-    const { email, password, ...updateData } = data;
+    // Only non-privileged profile fields are user-editable. Never trust the
+    // body for role / tenantId / emailVerified / email / password — a user
+    // could previously PUT { tenantId } to move into another customer's account.
+    const allowedFields = ['firstName', 'lastName'] as const;
+    const updateData: Record<string, unknown> = {};
+    for (const field of allowedFields) {
+      if (data?.[field] !== undefined) {
+        updateData[field] = data[field];
+      }
+    }
     return this.prisma.user.update({
       where: { id },
       data: updateData,
+      // Don't send the password hash back to the client.
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 }

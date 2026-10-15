@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@nestjs/common';
+import { Injectable, Optional, NotFoundException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma.service';
@@ -48,7 +48,7 @@ export class DfyService {
       where: { id: projectId },
     });
 
-    if (!project) throw new Error('Project not found');
+    if (!project) throw new NotFoundException('Project not found');
 
     const branding = await this.aiService.generateDfyStoreBranding(project.niche);
 

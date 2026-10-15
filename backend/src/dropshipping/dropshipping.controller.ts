@@ -10,10 +10,11 @@ import {
 } from '@nestjs/common';
 import { DropshippingService } from './dropshipping.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../common/guards/tenant.guard';
 import { CurrentUser } from '../common/decorators/user.decorator';
 
 @Controller('dropshipping')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class DropshippingController {
   constructor(private dropshippingService: DropshippingService) {}
 

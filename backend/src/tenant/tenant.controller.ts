@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards, Param } from '@nestjs/common';
+import { Controller, Get, Put, Body, UseGuards, Param, NotFoundException } from '@nestjs/common';
 import { TenantService } from './tenant.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/user.decorator';
@@ -14,7 +14,12 @@ export class TenantController {
   }
 
   @Get(':id')
-  async getTenant(@Param('id') id: string) {
+  async getTenant(@CurrentUser() user: any, @Param('id') id: string) {
+    // A user may only read their own tenant (previously any tenant by id,
+    // including its users, stores and subscriptions).
+    if (id !== user.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
     return this.tenantService.findById(id);
   }
 
