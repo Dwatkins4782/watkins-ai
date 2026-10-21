@@ -4,5 +4,12 @@ dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "sh ./start.sh"
+# Railway marks a deploy healthy only once this returns 2xx. Without it a
+# container that boots but never serves (missing ENCRYPTION_KEY, failed
+# `prisma migrate deploy`) is promoted anyway and the failure stays silent.
+healthcheckPath = "/api/v1/health"
+# start.sh runs `prisma migrate deploy` before the server listens, so a cold
+# start with pending migrations needs more than the 100s default.
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5

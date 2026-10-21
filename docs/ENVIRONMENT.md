@@ -62,8 +62,17 @@ SHOPIFY_API_SECRET=
 
 ## Frontend (`.env.local` — Vercel)
 
+`NEXT_PUBLIC_*` values are **inlined into the client bundle at build time**, not
+read at runtime. Changing one in Vercel has no effect until a fresh build runs —
+a redeploy that reuses the build cache ships the old value. If the variable is
+unset at build time the client silently falls back to
+`http://localhost:4000/api/v1` and every API call fails in users' browsers while
+local development looks fine.
+
 ```bash
-NEXT_PUBLIC_API_URL=https://api.ecomrevhub.com/api/v1
+# api.ecomrevhub.com is NOT configured in DNS (NXDOMAIN as of 2026-10-20).
+# Until that CNAME exists this must be the Railway-generated hostname.
+NEXT_PUBLIC_API_URL=https://watkins-ai-production.up.railway.app/api/v1
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 ```
 
@@ -77,6 +86,10 @@ Before promoting a build to production, verify:
 - [ ] `FRONTEND_URL` matches the actual customer-facing origin
 - [ ] `STRIPE_SECRET_KEY` starts with `sk_live_` not `sk_test_`
 - [ ] `NEXT_PUBLIC_API_URL` matches your backend URL
+- [ ] `curl https://<backend-host>/api/v1/health` returns 200 **before** promoting the frontend
+- [ ] The frontend was **rebuilt** (not cache-redeployed) after changing `NEXT_PUBLIC_API_URL`
+- [ ] `backend/package-lock.json` is in sync with `backend/package.json` — `npm ci` in the
+      Dockerfile fails hard on a mismatch and blocks every backend deploy
 
 ## Generating secure values
 
